@@ -1,0 +1,1073 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © wintonbanks
+//@version=5
+indicator("$ - HTF Sweeps & PO3", overlay=true, max_lines_count=500, max_labels_count=500, max_boxes_count=500, max_bars_back=2000, max_polylines_count=100)
+// HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+htf_sweeps_tf_1_show = input.bool(defval = true, title = 'Enable', inline = '1', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_1_number = input.int(defval = 3, title = '', minval = 1, maxval = 60, inline = '1', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_1_display_tf = input.string(defval = '1h', title = '', options = ['M', 'W', 'D', '4h', '1h', '30m', '15m'], inline = '1', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = '2 - Number of HTF candles visible.\n\n3 - Reference timeframe for HTF.')
+htf_sweeps_tf_1_ltf_lines_type = input.string(defval = 'Sweeps + Lines', title = 'Main', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'Dots', 'Sweeps + Dots', 'None'], inline = '2', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_1_htf_lines_type = input.string(defval = 'Sweeps', title = 'HTF', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'None'], inline = '2', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Main - What lines are visible on Main chart.\n\nHTF - What lines are visible on HTF candles.')
+htf_sweeps_tf_1_sweep_line_color = input.color(defval = #b22833, title = '', inline = '3', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_1_sweep_line_width = input.int(defval = 1, title = 'Width', minval = 1, inline = '3', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_1_sweep_line_style = input.string(defval = 'Solid', title = '', options = ['Solid', 'Dashed', 'Dotted'], inline = '3', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf1_prev_hl_line_color = input.color(defval = #706c69, title = '', inline = '4', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf1_prev_hl_line_width = input.int(defval = 1, title = 'Width', minval = 1, inline = '4', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf1_prev_hl_line_style = input.string(defval = 'Dotted', title = '', options = ['Solid', 'Dashed', 'Dotted'], inline = '4', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_1_show_on_main_chart = input.bool(defval = true, title = 'Show Sweeps on Source TF', inline = '6', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_1_lines_only = input.bool(defval = false, title = 'Hide Candles', inline = '6', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Source TF:\nShow the sweep lines on the the HTF reference timeframe.\n\nHide Candles:\nHides the HTF candles but keeps the lines on the chart.')
+htf_sweeps_tf_1_extend_main = input.bool(defval = false, title = 'Extend Sweeps (Main)', inline = '5', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_1_extend_htf = input.bool(defval = false, title = 'Extend Sweeps (HTF)', inline = '5', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_1_sweep_ltf_stop_at_cross = input.bool(defval = true, title = 'Stop Sweeps at Crossover', inline = '7', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_1_only_recent_sweep = input.bool(defval = false, title = 'Recent Sweep Only', inline = '7', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Stop at Crossover:\nStops the line from being drawn once price crosses the level.\n\nRecent Sweep Only:\nOnly shows the most recent sweep.')
+htf_sweeps_tf_1_low_high_ltf_stop_at_cross = input.bool(defval = false, title = 'Stop Lines at Crossover', inline = '8', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+show_tf_labels_1 = input.bool(defval = true, title = 'Timeframe Labels on Lines', inline = '8', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Stop Lines at Crossover:\nStops the line from being drawn once price crosses the level.\n\nTimeframe Labels:\nShows timeframe labels to Previous H/L Lines.')
+htf1_open_line_show = input.bool(defval = true, title = 'Show HTF Open Line', inline = '9', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Draws a line from the current HTF candle open price extending to the HTF candle visualization.')
+htf1_open_line_color = input.color(defval = #2962FF, title = '', inline = '10', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf1_open_line_width = input.int(defval = 1, title = 'Width', minval = 1, inline = '10', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf1_open_line_style = input.string(defval = 'Dashed', title = '', options = ['Solid', 'Dashed', 'Dotted'], inline = '10', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+string htf_sweeps_tf_1_dot_size = 'Tiny'
+string htf_sweeps_tf_1_dot_shape = 'Diamond'
+// HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+htf_sweeps_tf_2_show = input.bool(defval = true, title = 'Enable', inline = '1', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_2_number = input.int(defval = 2, title = '', minval = 1, maxval = 60, inline = '1', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_2_display_tf = input.string(defval = '4h', title = '', options = ['M', 'W', 'D', '4h', '1h', '30m', '15m'], inline = '1', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = '2 - Number of HTF candles visible.\n\n3 - Reference timeframe for HTF.')
+htf_sweeps_tf_2_ltf_lines_type = input.string(defval = 'None', title = 'Main', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'Dots', 'Sweeps + Dots', 'None'], inline = '2', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_2_htf_lines_type = input.string(defval = 'Sweeps', title = 'HTF', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'None'], inline = '2', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Main - What lines are visible on Main chart.\n\nHTF - What lines are visible on HTF candles.')
+htf_sweeps_tf_2_sweep_line_color = input.color(defval = #b22833, title = '', inline = '3', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_2_sweep_line_width = input.int(defval = 1, title = 'Width', minval = 1, inline = '3', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_2_sweep_line_style = input.string(defval = 'Solid', title = '', options = ['Solid', 'Dashed', 'Dotted'], inline = '3', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf2_prev_hl_line_color = input.color(defval = #706c69, title = '', inline = '4', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf2_prev_hl_line_width = input.int(defval = 1, title = 'Width', minval = 1, inline = '4', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf2_prev_hl_line_style = input.string(defval = 'Dotted', title = '', options = ['Solid', 'Dashed', 'Dotted'], inline = '4', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_2_extend_main = input.bool(defval = false, title = 'Extend Sweeps (Main)', inline = '5', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_2_extend_htf = input.bool(defval = false, title = 'Extend Sweeps (HTF)', inline = '5', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_2_show_on_main_chart = input.bool(defval = true, title = 'Show Sweeps on Source TF', inline = '6', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_2_lines_only = input.bool(defval = false, title = 'Hide Candles', inline = '6', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Source TF:\nShow the sweep lines on the HTF reference timeframe.\n\nHide Candles:\nHides the HTF candles but keeps the lines on the chart.')
+htf_sweeps_tf_2_sweep_ltf_stop_at_cross = input.bool(defval = true, title = 'Stop Sweeps at Crossover', inline = '7', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_2_only_recent_sweep = input.bool(defval = false, title = 'Recent Sweep Only', inline = '7', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Stop at Crossover:\nStops the line from being drawn once price crosses the level.\n\nRecent Sweep Only:\nOnly shows the most recent sweep.')
+htf_sweeps_tf_2_low_high_ltf_stop_at_cross = input.bool(defval = false, title = 'Stop Lines at Crossover', inline = '8', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+show_tf_labels_2 = input.bool(defval = true, title = 'Timeframe Labels on Lines', inline = '8', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Stop Lines at Crossover:\nStops the line from being drawn once price crosses the level.\n\nTimeframe Labels:\nShows timeframe labels on Previous H/L Lines.')
+htf2_open_line_show = input.bool(defval = true, title = 'Show HTF Open Line', inline = '9', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Draws a line from the current HTF candle open price extending to the HTF candle visualization.')
+htf2_open_line_color = input.color(defval = #FF6D00, title = '', inline = '10', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf2_open_line_width = input.int(defval = 1, title = 'Width', minval = 1, inline = '10', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf2_open_line_style = input.string(defval = 'Dashed', title = '', options = ['Solid', 'Dashed', 'Dotted'], inline = '10', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+string htf_sweeps_tf_2_dot_size = 'Tiny'
+string htf_sweeps_tf_2_dot_shape = 'Diamond'
+// HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+htf_sweeps_tf_3_show = input.bool(defval = false, title = 'Enable', inline = '1', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_3_number = input.int(defval = 3, title = '', minval = 1, maxval = 60, inline = '1', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_3_display_tf = input.string(defval = '30m', title = '', options = ['M', 'W', 'D', '4h', '1h', '30m', '15m'], inline = '1', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = '2 - Number of HTF candles visible.\n\n3 - Reference timeframe for HTF.')
+htf_sweeps_tf_3_ltf_lines_type = input.string(defval = 'None', title = 'Main', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'Dots', 'Sweeps + Dots', 'None'], inline = '2', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_3_htf_lines_type = input.string(defval = 'Sweeps', title = 'HTF', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'None'], inline = '2', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Main - What lines are visible on Main chart.\n\nHTF - What lines are visible on HTF candles.')
+htf_sweeps_tf_3_sweep_line_color = input.color(defval = #b22833, title = '', inline = '3', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_3_sweep_line_width = input.int(defval = 1, title = 'Width', minval = 1, inline = '3', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_3_sweep_line_style = input.string(defval = 'Solid', title = '', options = ['Solid', 'Dashed', 'Dotted'], inline = '3', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf3_prev_hl_line_color = input.color(defval = #706c69, title = '', inline = '4', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf3_prev_hl_line_width = input.int(defval = 1, title = 'Width', minval = 1, inline = '4', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf3_prev_hl_line_style = input.string(defval = 'Dotted', title = '', options = ['Solid', 'Dashed', 'Dotted'], inline = '4', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_3_extend_main = input.bool(defval = false, title = 'Extend Sweeps (Main)', inline = '5', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_3_extend_htf = input.bool(defval = false, title = 'Extend Sweeps (HTF)', inline = '5', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_3_show_on_main_chart = input.bool(defval = true, title = 'Show Sweeps on Source TF', inline = '6', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_3_lines_only = input.bool(defval = false, title = 'Hide Candles', inline = '6', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Source TF:\nShow the sweep lines on the HTF reference timeframe.\n\nHide Candles:\nHides the HTF candles but keeps the lines on the chart.')
+htf_sweeps_tf_3_sweep_ltf_stop_at_cross = input.bool(defval = true, title = 'Stop Sweeps at Crossover', inline = '7', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_tf_3_only_recent_sweep = input.bool(defval = false, title = 'Recent Sweep Only', inline = '7', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Stop at Crossover:\nStops the line from being drawn once price crosses the level.\n\nRecent Sweep Only:\nOnly shows the most recent sweep.')
+htf_sweeps_tf_3_low_high_ltf_stop_at_cross = input.bool(defval = false, title = 'Stop Lines at Crossover', inline = '8', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+show_tf_labels_3 = input.bool(defval = true, title = 'Timeframe Labels on Lines', inline = '8', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Stop Lines at Crossover:\nStops the line from being drawn once price crosses the level.\n\nTimeframe Labels:\nShows timeframe labels on Previous H/L Lines.')
+htf3_open_line_show = input.bool(defval = true, title = 'Show HTF Open Line', inline = '9', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Draws a line from the current HTF candle open price extending to the HTF candle visualization.')
+htf3_open_line_color = input.color(defval = #00E676, title = '', inline = '10', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf3_open_line_width = input.int(defval = 1, title = 'Width', minval = 1, inline = '10', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf3_open_line_style = input.string(defval = 'Dashed', title = '', options = ['Solid', 'Dashed', 'Dotted'], inline = '10', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+string htf_sweeps_tf_3_dot_size = 'Tiny'
+string htf_sweeps_tf_3_dot_shape = 'Diamond'
+// General Settings
+bull_color = input.color(defval = #b2b5be, title = '', tooltip = 'Body\nBullish / Bearish', inline = 'body', group = 'General Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+bear_color = input.color(defval = #5d606b, title = '', tooltip = 'Body\nBullish / Bearish', inline = 'body', group = 'General Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+bull_wick_border_color = input.color(defval = #d1d4dc, title = '', tooltip = 'Border + Wick\nBullish / Bearish', inline = 'wick', group = 'General Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+bear_wick_border_color = input.color(defval = #787b86, title = '', tooltip = 'Border + Wick\nBullish / Bearish', inline = 'wick', group = 'General Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_offset = input.int(title = 'Distance from Candles', tooltip = 'Distance from the most recent candle on the chart to the HTF candles.', inline = '0.1', group = 'General Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', defval = 22, minval = 1)
+htf_sweeps_distance_between = input.int(title = 'Distance Between HTFs', tooltip = 'Distance between different HTF groups (e.g., HTF1 to HTF2).', group = 'General Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', defval = 5, minval = 2)
+// "Extend PH/L Lines Forward" is now ALWAYS ENABLED (toggle hidden from UI)
+bool extend_phl_forward = true
+// Labels
+htf_sweeps_label_color = input.color(defval = #d1d4dc, title = '', inline = 'label', group = 'Labels ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_label_position = input.string(defval = 'Top', title = '', options = ['Both', 'Top', 'Bottom'], tooltip = '1 - HTF Label alignment\n\n2 - Size of text', inline = 'label', group = 'Labels ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_label_size = input.string(defval = 'Tiny', title = '', options = ['Tiny', 'Small', 'Normal', 'Large', 'Huge', 'Auto'], inline = 'label', group = 'Labels ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_label_show = input.bool(defval = true, title = 'HTF Label', inline = 'label', group = 'Labels ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+tf_label_color = input.color(defval = color.white, title = '', inline = 'label1', group = 'Labels ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+tf_label_size = input.string(defval = 'Tiny', title = '', options = ['Tiny', 'Small', 'Normal', 'Large', 'Huge', 'Auto'], inline = 'label1', group = 'Labels ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Timeframe Labels for the Previous HTF Candle H/L Lines.\n\nYou can individually toggle these for each HTF group above.')
+// Alerts
+htf_sweeps_alerts_prev_high_low = input.bool(defval = true, title = 'Previous Candle H/L', tooltip = '1. Triggers an alert when the price reaches the exact high or low of the previous higher timeframe candle.\n\n2. Triggers an alert when a new sweep is formed. A sweep occurs when price moves beyond the high (bullish sweep) or low (bearish sweep) of a previous higher timeframe candle and meets specific conditions, indicating potential liquidity capture.', inline = 'alert3', group = 'Alerts ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_alerts_sweep_formation = input.bool(defval = false, title = 'Sweep Formation', tooltip = '1. Triggers an alert when the price reaches the exact high or low of the previous higher timeframe candle.\n\n2. Triggers an alert when a new sweep is formed. A sweep occurs when price moves beyond the high (bullish sweep) or low (bearish sweep) of a previous higher timeframe candle and meets specific conditions, indicating potential liquidity capture.', inline = 'alert3', group = 'Alerts ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf_sweeps_session_restriction = input.string(defval = 'London', title = '', options = ['London', 'New York', 'London + New York', 'London (DST)', 'New York (DST)', 'London + New York (DST)', 'Disabled'], inline = 'alert2', group = 'Alerts ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Restrict alerts to a specific session.\n\nLondon - 02:00-05:00 UTC-4.\nNew York - 07:00-11:00 UTC-4.\n\nDaylight Savings:\nLondon - 01:00-04:00 UTC-4.\nNew York - 06:00-10:00 UTC-4.\n\nDisabled - no time restriction for alerts.')
+_ = input.string(defval = 'Alert Info', title = '', options = ['Alert Info'], tooltip = 'To set up alerts for the indicator, firstly toggle the alerts above that you want to be active. Then create a new alert and select the indicator under the ‘Condition’ dropdown list.\n\nFor optimal performance, set the alert interval in the alert window to match your preferred entry timeframe.\n\nThis automates the alerts and avoids having to manually add alerts throughout the day.\n\nIf you would like to change which alert toggles are active; you will need to delete your alert, adjust the toggles and then recreate the alert.', inline = 'aler1', group = 'Alerts ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+// # Define htf_sweeps_real_time_sweep_show as a variable to preserve backend functionality
+var bool htf_sweeps_real_time_sweep_show = false
+// # ========================================================================= #
+// # | Types |
+// # ========================================================================= #
+type UDT_Store
+    line [] bin_ln
+    box [] bin_box
+    label [] bin_lbl
+    polyline [] bin_polyline
+type UDT_Sweep
+    string tf
+    int x1
+    float y
+    int x2
+    bool bull
+    bool invalidated = false
+    int invalidated_on
+    bool removed = false
+    bool formed = false
+    int cross_idx = na
+    bool cross_triggered = false
+    line ltf_line = na
+    line htf_line = na
+type UDT_HTF_Candle
+    int num
+    int index
+    string tf
+    float o
+    float c
+    float h
+    float l
+    int o_idx
+    int c_idx
+    int h_idx
+    int l_idx
+    int ot
+    int ct
+    int candle_left
+    int candle_rigth
+    float candle_top
+    float candle_bottom
+    int wick_x
+    int shift
+    bool is_closed
+    array<UDT_Sweep> htf_sweeps
+    array<UDT_Sweep> ltf_sweeps
+    bool bull
+    bool bull_sweep
+    bool bear_sweep
+    line low_line
+    line high_line
+    bool high_alert_triggered = false
+    bool low_alert_triggered = false
+    int high_cross_idx = na
+    int low_cross_idx = na
+    int high_break_idx = na
+    int low_break_idx = na
+type PrevLevel
+    float price
+    string tf
+    int end_x
+    bool is_high
+// # ========================================================================= #
+// # | Methods |
+// # ========================================================================= #
+candle_size(string size) =>
+    out = switch size
+        'Tiny' => 2
+        'Small' => 4
+        'Medium' => 6
+        'Large' => 8
+        'Huge' => 10
+    out
+get_actual_tf(string display_tf) =>
+    switch display_tf
+        "15m" => "15"
+        "30m" => "30"
+        "1h" => "60"
+        "4h" => "240"
+        "D" => "D"
+        "W" => "W"
+        "M" => "M"
+tf_label(string tf) =>
+    tfl = tf
+    if tfl == ''
+        tfl := timeframe.period
+    out = switch tfl
+        '1' => '1m'
+        '2' => '2m'
+        '3' => '3m'
+        '5' => '5m'
+        '10' => '10m'
+        '15' => '15m'
+        '20' => '20m'
+        '30' => '30m'
+        '45' => '45m'
+        '60' => '1h'
+        '120' => '2h'
+        '180' => '3h'
+        '240' => '4h'
+        '480' => '8h'
+        '540' => '9h'
+        '720' => '12h'
+        'D' => 'D'
+        'W' => 'W'
+        'M' => 'M'
+        => tfl
+    out
+session_begins(string tf, string ses, string tz) =>
+    ta.change(time(tf, ses, na(tz) ? "" : tz)) != 0
+in_session(string tf, string ses, string tz) =>
+    t = time(tf, ses, na(tz) ? "" : tz)
+    ct = time_close(tf, ses, na(tz) ? "" : tz)
+    not na(t) and not na(ct)
+method enable_sweep_formed_alert(UDT_Sweep sweep) =>
+    if not na(sweep) and htf_sweeps_alerts_sweep_formation
+        if not sweep.invalidated
+            bool session_active = true
+            string london_sess = "0200-0500"
+            string ny_sess = "0700-1100"
+            string both_sess = "0200-0500,0700-1100"
+            string london_dst_sess = "0100-0400"
+            string ny_dst_sess = "0600-1000"
+            string both_dst_sess = "0100-0400,0600-1000"
+            if htf_sweeps_session_restriction == "London"
+                session_active := in_session("D", london_sess, "America/New_York")
+            else if htf_sweeps_session_restriction == "New York"
+                session_active := in_session("D", ny_sess, "America/New_York")
+            else if htf_sweeps_session_restriction == "London + New York"
+                session_active := in_session("D", both_sess, "America/New_York")
+            else if htf_sweeps_session_restriction == "London (DST)"
+                session_active := in_session("D", london_dst_sess, "America/New_York")
+            else if htf_sweeps_session_restriction == "New York (DST)"
+                session_active := in_session("D", ny_dst_sess, "America/New_York")
+            else if htf_sweeps_session_restriction == "London + New York (DST)"
+                session_active := in_session("D", both_dst_sess, "America/New_York")
+            else if htf_sweeps_session_restriction == "Disabled"
+                session_active := true
+            if session_active
+                string alert_message = na
+                if sweep.bull
+                    alert_message := str.format("{0} Buyside Sweep ({1})", tf_label(sweep.tf), syminfo.ticker)
+                else
+                    alert_message := str.format("{0} Sellside Sweep ({1})", tf_label(sweep.tf), syminfo.ticker)
+                alert(alert_message)
+method enable_prev_high_low_alert(UDT_HTF_Candle candle) =>
+    bool session_active = true
+    string london_sess = "0200-0500"
+    string ny_sess = "0700-1100"
+    string both_sess = "0200-0500,0700-1100"
+    string london_dst_sess = "0100-0400"
+    string ny_dst_sess = "0600-1000"
+    string both_dst_sess = "0100-0400,0600-1000"
+    if htf_sweeps_session_restriction == "London"
+        session_active := in_session("D", london_sess, "America/New_York")
+    else if htf_sweeps_session_restriction == "New York"
+        session_active := in_session("D", ny_sess, "America/New_York")
+    else if htf_sweeps_session_restriction == "London + New York"
+        session_active := in_session("D", both_sess, "America/New_York")
+    else if htf_sweeps_session_restriction == "London (DST)"
+        session_active := in_session("D", london_dst_sess, "America/New_York")
+    else if htf_sweeps_session_restriction == "New York (DST)"
+        session_active := in_session("D", ny_dst_sess, "America/New_York")
+    else if htf_sweeps_session_restriction == "London + New York (DST)"
+        session_active := in_session("D", both_dst_sess, "America/New_York")
+    else if htf_sweeps_session_restriction == "Disabled"
+        session_active := true
+    if session_active
+        if ta.crossover(high, candle.h) and not candle.high_alert_triggered and candle.is_closed
+            if htf_sweeps_alerts_prev_high_low
+                string alert_message = str.format("{0} High ({1})", tf_label(candle.tf), syminfo.ticker)
+                alert(alert_message)
+            candle.high_alert_triggered := true
+        if ta.crossunder(low, candle.l) and not candle.low_alert_triggered and candle.is_closed
+            if htf_sweeps_alerts_prev_high_low
+                string alert_message = str.format("{0} Low ({1})", tf_label(candle.tf), syminfo.ticker)
+                alert(alert_message)
+            candle.low_alert_triggered := true
+// # ========================================================================= #
+// # | Variables |
+// # ========================================================================= #
+var UDT_Store bin = UDT_Store.new(
+                   bin_ln = array.new<line>()
+                 , bin_box = array.new<box>()
+                 , bin_lbl = array.new<label>()
+                 , bin_polyline = array.new<polyline>()
+                 )
+var ltf = timeframe.period
+var htf_1_candles = array.new<UDT_HTF_Candle>()
+var htf_2_candles = array.new<UDT_HTF_Candle>()
+var htf_3_candles = array.new<UDT_HTF_Candle>()
+var htf_candle_width = 2
+var htf_sweeps_tf_1_i_sweep_line_style = "Solid"
+var htf_sweeps_tf_1_i_sweep_line_width = 1
+var htf_sweeps_tf_1_i_sweep_line_color = #706c69
+var htf_sweeps_tf_2_i_sweep_line_style = "Dashed"
+var htf_sweeps_tf_2_i_sweep_line_width = 1
+var htf_sweeps_tf_2_i_sweep_line_color = #706c69
+var htf_sweeps_tf_3_i_sweep_line_style = "Dashed"
+var htf_sweeps_tf_3_i_sweep_line_width = 1
+var htf_sweeps_tf_3_i_sweep_line_color = #706c69
+bool show_unconfirmed_sweeps = true
+// # ========================================================================= #
+// # | Methods Continued |
+// # ========================================================================= #
+method clean_bin(UDT_Store store) =>
+    for obj in store.bin_ln
+        obj.delete()
+    for obj in store.bin_box
+        obj.delete()
+    for obj in store.bin_lbl
+        obj.delete()
+    for obj in store.bin_polyline
+        obj.delete()
+    store.bin_ln.clear()
+    store.bin_box.clear()
+    store.bin_lbl.clear()
+    store.bin_polyline.clear()
+    for candle in htf_1_candles
+        if not na(candle.low_line)
+            candle.low_line.delete()
+            candle.low_line := na
+        if not na(candle.high_line)
+            candle.high_line.delete()
+            candle.high_line := na
+        for sweep in candle.ltf_sweeps
+            if not na(sweep.ltf_line)
+                sweep.ltf_line.delete()
+                sweep.ltf_line := na
+            if not na(sweep.htf_line)
+                sweep.htf_line.delete()
+                sweep.htf_line := na
+        for sweep in candle.htf_sweeps
+            if not na(sweep.ltf_line)
+                sweep.ltf_line.delete()
+                sweep.ltf_line := na
+            if not na(sweep.htf_line)
+                sweep.htf_line.delete()
+                sweep.htf_line := na
+    for candle in htf_2_candles
+        if not na(candle.low_line)
+            candle.low_line.delete()
+            candle.low_line := na
+        if not na(candle.high_line)
+            candle.high_line.delete()
+            candle.high_line := na
+        for sweep in candle.ltf_sweeps
+            if not na(sweep.ltf_line)
+                sweep.ltf_line.delete()
+                sweep.ltf_line := na
+            if not na(sweep.htf_line)
+                sweep.htf_line.delete()
+                sweep.htf_line := na
+        for sweep in candle.htf_sweeps
+            if not na(sweep.ltf_line)
+                sweep.ltf_line.delete()
+                sweep.ltf_line := na
+            if not na(sweep.htf_line)
+                sweep.htf_line.delete()
+                sweep.htf_line := na
+    for candle in htf_3_candles
+        if not na(candle.low_line)
+            candle.low_line.delete()
+            candle.low_line := na
+        if not na(candle.high_line)
+            candle.high_line.delete()
+            candle.high_line := na
+        for sweep in candle.ltf_sweeps
+            if not na(sweep.ltf_line)
+                sweep.ltf_line.delete()
+                sweep.ltf_line := na
+            if not na(sweep.htf_line)
+                sweep.htf_line.delete()
+                sweep.htf_line := na
+        for sweep in candle.htf_sweeps
+            if not na(sweep.ltf_line)
+                sweep.ltf_line.delete()
+                sweep.ltf_line := na
+            if not na(sweep.htf_line)
+                sweep.htf_line.delete()
+                sweep.htf_line := na
+method text_size(string size) =>
+    out = switch size
+        "Tiny" => size.tiny
+        "Small" => size.small
+        "Normal" => size.normal
+        "Large" => size.large
+        "Huge" => size.huge
+        "Auto" => size.auto
+    out
+method line_style(string style) =>
+    out = switch style
+        "Solid" => line.style_solid
+        "Dashed" => line.style_dashed
+        "Dotted" => line.style_dotted
+    out
+method get_htf_candle_shift(int candle_index, int offset, int buffer, int width, int candles_amount) =>
+    out = offset + (width + buffer) * (candles_amount - candle_index - 1)
+    out
+method position_ltf_sweeps(array<UDT_HTF_Candle> htf_candles) =>
+    count = htf_candles.size()
+    if count == 1
+        candle = htf_candles.get(0)
+        for [index, sweep] in candle.ltf_sweeps
+            sweep.x2 := candle.c_idx
+    if count >= 2
+        candle = htf_candles.get(1)
+        next_candle = htf_candles.get(0)
+        for [index, sweep] in candle.ltf_sweeps
+            sweep.x2 := next_candle.c_idx
+    htf_candles
+method position_htf_sweeps(array<UDT_HTF_Candle> htf_candles, int buffer) =>
+    count = htf_candles.size()
+    if count > 1
+        for [i, candle] in htf_candles
+            for [j, sweep] in candle.htf_sweeps
+                sweep.x1 := candle.wick_x
+                if i > 0
+                    next_candle = htf_candles.get(i - 1)
+                    sweep.x2 := next_candle.wick_x   // <--- this is the key change
+                else
+                    // For a sweep on the absolute newest candle (rare/unconfirmed), extend a little extra
+                    sweep.x2 := candle.candle_rigth + 2
+    htf_candles
+method invalidate_sweep(UDT_Sweep sweep, UDT_HTF_Candle c2) =>
+    c2_bull = c2.bull
+    invalidated = not na(sweep.y) and (sweep.bull ? (c2_bull ? sweep.y < c2.c : sweep.y < c2.o) : (c2_bull ? sweep.y > c2.o : sweep.y > c2.c))
+    invalidated
+method invalidate_sweeps(array<UDT_HTF_Candle> htf_candles) =>
+    count = htf_candles.size()
+    if count > 1
+        for i = count - 1 to 1
+            c1 = htf_candles.get(i)
+            for [j, sweep] in c1.ltf_sweeps
+                if not sweep.removed and na(sweep.invalidated_on)
+                    for k = i - 1 to 0
+                        c2 = htf_candles.get(k)
+                        htf_sweep = c1.htf_sweeps.get(j)
+                        invalidated = sweep.invalidate_sweep(c2)
+                        if sweep.x2 <= c2.c_idx and sweep.x2 > c2.o_idx
+                            if not c2.is_closed
+                                sweep.invalidated := invalidated
+                                htf_sweep.invalidated := sweep.invalidated
+                            else
+                                if invalidated and na(sweep.invalidated_on)
+                                    sweep.invalidated_on := invalidated ? c2.o_idx : na
+                                    htf_sweep.invalidated_on := sweep.invalidated_on
+                                    break
+                        else if na(sweep.invalidated_on)
+                            if not c2.is_closed
+                                sweep.invalidated := invalidated
+                                htf_sweep.invalidated := sweep.invalidated
+                            else
+                                if invalidated
+                                    sweep.invalidated := invalidated
+                                    sweep.invalidated_on := invalidated ? c2.o_idx : na
+                                    htf_sweep.invalidated := sweep.invalidated
+                                    htf_sweep.invalidated_on := sweep.invalidated_on
+                                    break
+                c2 = htf_candles.get(i - 1)
+                if not sweep.formed and not sweep.removed
+                    if c2.is_closed
+                        htf_sweep = c1.htf_sweeps.get(j)
+                        if sweep.invalidated and not na(sweep.invalidated_on)
+                            sweep.removed := true
+                            htf_sweep.removed := true
+                        else
+                            if not sweep.formed
+                                sweep.formed := true
+                                htf_sweep.formed := true
+    htf_candles
+method detect_sweeps(array<UDT_HTF_Candle> htf_candles, bool tf_only_recent_sweep, bool tf_sweep_ltf_stop_at_cross, bool tf_i_sweep_ltf_stop_at_cross) =>
+    count = htf_candles.size()
+    if count > 1
+        size = math.min(4, count - 1)
+        for i = size to 1
+            c1 = htf_candles.get(i)
+            c2 = htf_candles.get(i - 1)
+            if c2.h > c1.h and na(c2.high_break_idx)
+                c2.high_break_idx := bar_index
+            if not na(c2.high_break_idx) and na(c1.high_cross_idx)
+                c1.high_cross_idx := c2.high_break_idx
+            if c2.l < c1.l and na(c2.low_break_idx)
+                c2.low_break_idx := bar_index
+            if not na(c2.low_break_idx) and na(c1.low_cross_idx)
+                c1.low_cross_idx := c2.low_break_idx
+            if not c2.is_closed and c1.htf_sweeps.size() <= 2
+                c1_bull = c1.bull
+                c2_bull = c2.bull
+                bull_sweep_in_range = c2_bull ? (c1_bull ? (c2.c < c1.h) : (c2.c < c1.h)) : (c1_bull ? (c2.o < c1.h) : (c2.o < c1.h))
+                is_bull_sweep = c2.h > c1.h and bull_sweep_in_range
+                bear_sweep_in_range = c2_bull ? (c1_bull ? (c2.o > c1.l) : (c2.o > c1.l)) : (c1_bull ? (c2.c > c1.l) : (c2.c > c1.l))
+                is_bear_sweep = c2.l < c1.l and bear_sweep_in_range
+                is_low_line_sweep = c2.l < c1.l and c2.c > c1.l and not c1.bear_sweep
+                is_high_line_sweep = c2.h > c1.h and c2.c < c1.h and not c1.bull_sweep
+                if is_bull_sweep or is_high_line_sweep
+                    if not c1.bull_sweep
+                        htf_sweep = UDT_Sweep.new(x1=c1.h_idx, x2=c2.c_idx, y=c1.h, bull=true, tf=c1.tf)
+                        ltf_sweep = UDT_Sweep.new(x1=c1.h_idx, x2=c2.c_idx, y=c1.h, bull=true, tf=c1.tf)
+                        c1.htf_sweeps.push(htf_sweep)
+                        c1.ltf_sweeps.push(ltf_sweep)
+                        if htf_sweep.bull
+                            htf_sweep.cross_idx := c2.high_break_idx
+                            htf_sweep.cross_triggered := true
+                            ltf_sweep.cross_idx := c2.high_break_idx
+                            ltf_sweep.cross_triggered := true
+                        c1.bull_sweep := true
+                        ltf_sweep.enable_sweep_formed_alert()
+                else if is_bear_sweep or is_low_line_sweep
+                    if not c1.bear_sweep
+                        htf_sweep = UDT_Sweep.new(x1=c1.l_idx, x2=c2.c_idx, y=c1.l, bull=false, tf=c1.tf)
+                        ltf_sweep = UDT_Sweep.new(x1=c1.l_idx, x2=c2.c_idx, y=c1.l, bull=false, tf=c1.tf)
+                        c1.htf_sweeps.push(htf_sweep)
+                        c1.ltf_sweeps.push(ltf_sweep)
+                        if not htf_sweep.bull
+                            htf_sweep.cross_idx := c2.low_break_idx
+                            htf_sweep.cross_triggered := true
+                            ltf_sweep.cross_idx := c2.low_break_idx
+                            ltf_sweep.cross_triggered := true
+                        c1.bear_sweep := true
+                        ltf_sweep.enable_sweep_formed_alert()
+            c1.enable_prev_high_low_alert()
+            for [j, sweep] in c1.ltf_sweeps
+                if (tf_sweep_ltf_stop_at_cross or tf_i_sweep_ltf_stop_at_cross) and not sweep.cross_triggered
+                    if sweep.bull and ta.crossover(high, sweep.y)
+                        sweep.cross_idx := bar_index
+                        sweep.cross_triggered := true
+                    else if not sweep.bull and ta.crossunder(low, sweep.y)
+                        sweep.cross_idx := bar_index
+                        sweep.cross_triggered := true
+        htf_candles.position_ltf_sweeps()
+        htf_candles.invalidate_sweeps()
+    htf_candles
+method draw_sweep(UDT_Sweep sweep, bool ltf, bool tf_ltf_lines_show, bool tf_htf_lines_show, bool tf_sweep_ltf_stop_at_cross, bool tf_i_sweep_ltf_stop_at_cross, string tf_sweep_line_style, int tf_sweep_line_width, color tf_sweep_line_color, string tf_i_sweep_line_style, int tf_i_sweep_line_width, color tf_i_sweep_line_color, bool extend_main, bool extend_htf) =>
+    if ltf and not tf_ltf_lines_show or not ltf and not tf_htf_lines_show
+        sweep
+    bool use_extend_main = ltf and extend_main
+    bool use_extend_htf = not ltf and extend_htf
+    bool stop_at_cross = sweep.invalidated ? tf_i_sweep_ltf_stop_at_cross : tf_sweep_ltf_stop_at_cross
+    int end_x2 = ltf and stop_at_cross and not na(sweep.cross_idx) and not use_extend_main ? sweep.cross_idx : sweep.x2
+    if ltf and end_x2 == bar_index and extend_phl_forward and not use_extend_main
+        end_x2 += 5
+    extend_param = use_extend_main or use_extend_htf ? extend.right : extend.none
+    if sweep.invalidated
+        if ltf and tf_ltf_lines_show or not ltf and tf_htf_lines_show
+            if htf_sweeps_real_time_sweep_show ? true : not sweep.removed and not na(sweep.invalidated_on)
+                if ltf
+                    if not na(sweep.ltf_line)
+                        sweep.ltf_line.delete()
+                    sweep.ltf_line := line.new(x1=sweep.x1, y1=sweep.y, x2=end_x2, y2=sweep.y, xloc=xloc.bar_index, color=tf_i_sweep_line_color, style=line_style(tf_i_sweep_line_style), width=tf_i_sweep_line_width, extend=extend_param)
+                    bin.bin_ln.push(sweep.ltf_line)
+                else
+                    if not na(sweep.htf_line)
+                        sweep.htf_line.delete()
+                    sweep.htf_line := line.new(x1=sweep.x1, y1=sweep.y, x2=end_x2, y2=sweep.y, xloc=xloc.bar_index, color=tf_i_sweep_line_color, style=line_style(tf_i_sweep_line_style), width=tf_i_sweep_line_width, extend=extend_param)
+                    bin.bin_ln.push(sweep.htf_line)
+    else
+        if ltf and tf_ltf_lines_show or not ltf and tf_htf_lines_show
+            if ltf
+                if not na(sweep.ltf_line)
+                    sweep.ltf_line.delete()
+                sweep.ltf_line := line.new(x1=sweep.x1, y1=sweep.y, x2=end_x2, y2=sweep.y, xloc=xloc.bar_index, color=tf_sweep_line_color, style=line_style(tf_sweep_line_style), width=tf_sweep_line_width, extend=extend_param)
+                bin.bin_ln.push(sweep.ltf_line)
+            else
+                if not na(sweep.htf_line)
+                    sweep.htf_line.delete()
+                sweep.htf_line := line.new(x1=sweep.x1, y1=sweep.y, x2=end_x2, y2=sweep.y, xloc=xloc.bar_index, color=tf_sweep_line_color, style=line_style(tf_sweep_line_style), width=tf_sweep_line_width, extend=extend_param)
+                bin.bin_ln.push(sweep.htf_line)
+    sweep
+method is_bullish_candle(float c, float o, float h, float l) =>
+    if c == o
+        math.abs(o - h) < math.abs(o - l)
+    else
+        c > o
+method add_htf_candle(array<UDT_HTF_Candle> htf_candles, UDT_HTF_Candle candle, int total_candles_number)=>
+    if not na(candle)
+        if htf_candles.size() >= total_candles_number
+            removed_candle = htf_candles.pop()
+            for sweep in removed_candle.ltf_sweeps
+                if not na(sweep.ltf_line)
+                    sweep.ltf_line.delete()
+                    sweep.ltf_line := na
+                if not na(sweep.htf_line)
+                    sweep.htf_line.delete()
+                    sweep.htf_line := na
+            for sweep in removed_candle.htf_sweeps
+                if not na(sweep.ltf_line)
+                    sweep.ltf_line.delete()
+                    sweep.ltf_line := na
+                if not na(sweep.htf_line)
+                    sweep.htf_line.delete()
+                    sweep.htf_line := na
+            if not na(removed_candle.low_line)
+                removed_candle.low_line.delete()
+                removed_candle.low_line := na
+            if not na(removed_candle.high_line)
+                removed_candle.high_line.delete()
+                removed_candle.high_line := na
+        htf_candles.unshift(candle)
+    htf_candles
+method detect_htf_candle(array<UDT_HTF_Candle> htf_candles, string tf, string ltf) =>
+    UDT_HTF_Candle htf_candle = na
+    if session_begins(tf, "", na) or htf_candles.size()==0
+        UDT_HTF_Candle candle = UDT_HTF_Candle.new(tf=tf, htf_sweeps=array.new<UDT_Sweep>(), ltf_sweeps=array.new<UDT_Sweep>())
+        candle.o := open
+        candle.c := close
+        candle.h := high
+        candle.l := low
+        candle.o_idx := bar_index
+        candle.c_idx := bar_index
+        candle.h_idx := bar_index
+        candle.l_idx := bar_index
+        candle.ot := time
+        candle.bull := is_bullish_candle(candle.c, candle.o, candle.h, candle.l)
+        if htf_candles.size() > 0
+            last_candle = htf_candles.get(0)
+            last_candle.is_closed := true
+            last_candle.ct := time
+        htf_candle := candle
+    else if in_session(tf, "", na) and htf_candles.size()>0
+        candle = htf_candles.first()
+        candle.c := close
+        candle.c_idx := bar_index
+        candle.ct := time
+        if high > candle.h
+            candle.h := high
+            candle.h_idx := bar_index
+        if low < candle.l
+            candle.l := low
+            candle.l_idx := bar_index
+        candle.bull := is_bullish_candle(candle.c, candle.o, candle.h, candle.l)
+    htf_candle
+method position_htf_candle(UDT_HTF_Candle candle, int candle_index, int offset, int buffer, int width, int candles_amount) =>
+    candle.shift := get_htf_candle_shift(candle_index, offset, buffer, width, candles_amount)
+    candle.candle_left := bar_index + candle.shift
+    candle.candle_rigth := candle.candle_left + width
+    candle.candle_top := math.max(candle.o, candle.c)
+    candle.candle_bottom := math.min(candle.o, candle.c)
+    candle.wick_x := candle.candle_left + width/2
+    candle
+method position_htf_candles(array<UDT_HTF_Candle> htf_candles, int shift) =>
+    candles_amount = htf_candles.size()
+    for [index, candle] in htf_candles
+        candle.position_htf_candle(index, shift, 1, htf_candle_width, candles_amount)
+method draw_dot_shape(string shape) =>
+    out = switch shape
+        "Circle" => label.style_circle
+        "Square" => label.style_square
+        "Diamond" => label.style_diamond
+    out
+method draw_htf_candle(UDT_HTF_Candle candle, int index, bool tf_ltf_previous, bool tf_htf_previous, bool tf_ltf_show, bool tf_htf_show, string tf_low_high_line_style, int tf_low_high_line_width, color tf_low_high_line_color, bool tf_low_high_ltf_stop_at_cross, color tf_bull_color, color tf_bear_color, color tf_bull_wick_border_color, color tf_bear_wick_border_color, bool tf_ltf_dot, string tf_dot_size, string tf_dot_shape, bool show_dots = true, array<PrevLevel> prev_levels, string display_tf, bool show_tf_labels_param) =>
+    candle_color = candle.bull ? tf_bull_color : tf_bear_color
+    wick_border_color = candle.bull ? tf_bull_wick_border_color : tf_bear_wick_border_color
+    bin.bin_box.push(box.new(left=candle.candle_left, top=candle.candle_top, right=candle.candle_rigth, bottom=candle.candle_bottom, border_color=wick_border_color, border_width=1, bgcolor=candle_color))
+    bin.bin_ln.push(line.new(x1=candle.wick_x, y1=candle.h, x2=candle.wick_x, y2=candle.candle_top, color=wick_border_color))
+    bin.bin_ln.push(line.new(x1=candle.wick_x, y1=candle.candle_bottom, x2=candle.wick_x, y2=candle.l, color=wick_border_color))
+    if candle.is_closed and index == 1
+        // ----- LTF Previous H/L Lines -----
+        if tf_ltf_previous
+            if not na(candle.low_line)
+                candle.low_line.delete()
+            int end_x2_low = tf_low_high_ltf_stop_at_cross and not na(candle.low_cross_idx) ? candle.low_cross_idx : bar_index
+            int line_end_low = end_x2_low
+            if (extend_phl_forward or not tf_low_high_ltf_stop_at_cross) and end_x2_low == bar_index
+                line_end_low += 5
+            candle.low_line := line.new(x1=candle.l_idx, y1=candle.l, x2=line_end_low, y2=candle.l, xloc=xloc.bar_index, color=tf_low_high_line_color, style=line_style(tf_low_high_line_style), width=tf_low_high_line_width)
+            bin.bin_ln.push(candle.low_line)
+            if not na(candle.high_line)
+                candle.high_line.delete()
+            int end_x2_high = tf_low_high_ltf_stop_at_cross and not na(candle.high_cross_idx) ? candle.high_cross_idx : bar_index
+            int line_end_high = end_x2_high
+            if (extend_phl_forward or not tf_low_high_ltf_stop_at_cross) and end_x2_high == bar_index
+                line_end_high += 5
+            candle.high_line := line.new(x1=candle.h_idx, y1=candle.h, x2=line_end_high, y2=candle.h, xloc=xloc.bar_index, color=tf_low_high_line_color, style=line_style(tf_low_high_line_style), width=tf_low_high_line_width)
+            bin.bin_ln.push(candle.high_line)
+            if show_tf_labels_param
+                prev_levels.push(PrevLevel.new(candle.h, display_tf, line_end_high, true))
+                prev_levels.push(PrevLevel.new(candle.l, display_tf, line_end_low, false))
+        // ----- LTF Dot on Previous H/L -----
+        if tf_ltf_dot and show_dots
+            string dot_text = ""
+            color dot_bg_color = tf_low_high_line_color
+            color dot_text_color = color.white
+            // High dot
+            label high_dot = label.new(x=candle.h_idx, y=candle.h, text=dot_text, style=draw_dot_shape(tf_dot_shape), size=text_size(tf_dot_size), color=dot_bg_color, textcolor=dot_text_color)
+            bin.bin_lbl.push(high_dot)
+            // Low dot
+            label low_dot = label.new(x=candle.l_idx, y=candle.l, text=dot_text, style=draw_dot_shape(tf_dot_shape), size=text_size(tf_dot_size), color=dot_bg_color, textcolor=dot_text_color)
+            bin.bin_lbl.push(low_dot)
+        // ----- HTF Previous H/L Lines (unchanged) -----
+        if tf_htf_previous
+            var line htf_low_line = na
+            if not na(htf_low_line)
+                htf_low_line.delete()
+            htf_low_line := line.new(x1=candle.wick_x, y1=candle.l, x2=candle.candle_rigth + 1 + htf_candle_width + 1, y2=candle.l, xloc=xloc.bar_index, color=tf_low_high_line_color, style=line_style(tf_low_high_line_style), width=tf_low_high_line_width)
+            bin.bin_ln.push(htf_low_line)
+            var line htf_high_line = na
+            if not na(htf_high_line)
+                htf_high_line.delete()
+            htf_high_line := line.new(x1=candle.wick_x, y1=candle.h, x2=candle.candle_rigth + 1 + htf_candle_width + 1, y2=candle.h, xloc=xloc.bar_index, color=tf_low_high_line_color, style=line_style(tf_low_high_line_style), width=tf_low_high_line_width)
+            bin.bin_ln.push(htf_high_line)
+    candle
+method draw_htf_label(array<UDT_HTF_Candle> htf_candles, string tf) =>
+    float y_top = na
+    float y_bottom = na
+    int x_min = na
+    int x_max = na
+    for [index, candle] in htf_candles
+        switch htf_sweeps_label_position
+            "Both" =>
+                y_top := na(y_top) ? candle.h : math.max(y_top, candle.h)
+                y_bottom := na(y_bottom) ? candle.l : math.min(y_bottom, candle.l)
+            "Top" =>
+                y_top := na(y_top) ? candle.h : math.max(y_top, candle.h)
+            "Bottom" =>
+                y_bottom := na(y_bottom) ? candle.l : math.min(y_bottom, candle.l)
+        x_min := na(x_min) ? candle.wick_x : math.min(x_min, candle.wick_x)
+        x_max := na(x_max) ? candle.wick_x : math.max(x_max, candle.wick_x)
+    x = math.round(math.avg(x_min, x_max))
+    txt = tf_label(tf)
+    if not na(y_top)
+        bin.bin_lbl.push(label.new(x=x, y=y_top, text=txt, tooltip=str.format("HTF {0}", txt), xloc=xloc.bar_index, color=#FFFFFF00, style=label.style_label_down, textcolor=htf_sweeps_label_color, size=text_size(htf_sweeps_label_size), text_font_family=font.family_monospace))
+    if not na(y_bottom)
+        bin.bin_lbl.push(label.new(x=x, y=y_bottom, text=txt, tooltip=str.format("HTF {0}", txt), xloc=xloc.bar_index, color=#FFFFFF00, style=label.style_label_up, textcolor=htf_sweeps_label_color, size=text_size(htf_sweeps_label_size), text_font_family=font.family_monospace))
+    htf_candles
+method plot_ltf(array<UDT_HTF_Candle> htf_candles, bool tf_ltf_show, bool tf_ltf_sweeps, bool tf_ltf_i_sweeps, bool tf_only_recent_sweep, bool tf_sweep_ltf_stop_at_cross, bool tf_i_sweep_ltf_stop_at_cross, string tf_sweep_line_style, int tf_sweep_line_width, color tf_sweep_line_color, string tf_i_sweep_line_style, int tf_i_sweep_line_width, color tf_i_sweep_line_color, bool extend_main, bool extend_htf) =>
+    bool show_ltf_lines = tf_ltf_show
+    if not show_ltf_lines
+        htf_candles
+    if tf_only_recent_sweep
+        UDT_Sweep recent_sweep = na
+        for candle in htf_candles
+            if candle.ltf_sweeps.size() > 0
+                for [j, ltf_sweep] in candle.ltf_sweeps
+                    if (ltf_sweep.formed or show_unconfirmed_sweeps) and not ltf_sweep.invalidated and na(ltf_sweep.removed)
+                        recent_sweep := ltf_sweep
+                        break
+                if not na(recent_sweep)
+                    break
+        if not na(recent_sweep)
+            if tf_ltf_sweeps and not recent_sweep.invalidated
+                recent_sweep.draw_sweep(true, show_ltf_lines, false, tf_sweep_ltf_stop_at_cross, tf_i_sweep_ltf_stop_at_cross, tf_sweep_line_style, tf_sweep_line_width, tf_sweep_line_color, tf_i_sweep_line_style, tf_i_sweep_line_width, tf_i_sweep_line_color, extend_main, extend_htf)
+            if tf_ltf_i_sweeps and recent_sweep.invalidated
+                recent_sweep.draw_sweep(true, show_ltf_lines, false, tf_sweep_ltf_stop_at_cross, tf_i_sweep_ltf_stop_at_cross, tf_sweep_line_style, tf_sweep_line_width, tf_sweep_line_color, tf_i_sweep_line_style, tf_i_sweep_line_width, tf_i_sweep_line_color, extend_main, extend_htf)
+    else
+        for [index, candle] in htf_candles
+            if candle.ltf_sweeps.size() > 0
+                for [j, ltf_sweep] in candle.ltf_sweeps
+                    if ltf_sweep.formed or show_unconfirmed_sweeps
+                        if tf_ltf_sweeps and not ltf_sweep.invalidated
+                            ltf_sweep.draw_sweep(true, show_ltf_lines, false, tf_sweep_ltf_stop_at_cross, tf_i_sweep_ltf_stop_at_cross, tf_sweep_line_style, tf_sweep_line_width, tf_sweep_line_color, tf_i_sweep_line_style, tf_i_sweep_line_width, tf_i_sweep_line_color, extend_main, extend_htf)
+                        if tf_ltf_i_sweeps and ltf_sweep.invalidated
+                            ltf_sweep.draw_sweep(true, show_ltf_lines, false, tf_sweep_ltf_stop_at_cross, tf_i_sweep_ltf_stop_at_cross, tf_sweep_line_style, tf_sweep_line_width, tf_sweep_line_color, tf_i_sweep_line_style, tf_i_sweep_line_width, tf_i_sweep_line_color, extend_main, extend_htf)
+    htf_candles
+method plot_htf(array<UDT_HTF_Candle> htf_candles, string tf, bool tf_ltf_previous, bool tf_htf_previous, bool tf_ltf_show, bool tf_htf_show, bool hide_candles, bool tf_ltf_sweeps, bool tf_htf_sweeps, bool tf_ltf_i_sweeps, bool tf_htf_i_sweeps, string tf_low_high_line_style, int tf_low_high_line_width, color tf_low_high_line_color, bool tf_low_high_ltf_stop_at_cross, bool tf_only_recent_sweep, bool tf_sweep_ltf_stop_at_cross, bool tf_i_sweep_ltf_stop_at_cross, string tf_sweep_line_style, int tf_sweep_line_width, color tf_sweep_line_color, string tf_i_sweep_line_style, int tf_i_sweep_line_width, color tf_i_sweep_line_color, color tf_bull_color, color tf_bear_color, color tf_bull_wick_border_color, color tf_bear_wick_border_color, bool tf_ltf_dot, string tf_dot_size, string tf_dot_shape, bool show_dots = true, array<PrevLevel> prev_levels, string display_tf, bool show_tf_labels_param = true, bool extend_main, bool extend_htf) =>
+    bool show_ltf_lines = tf_ltf_show
+    htf_candles.position_htf_sweeps(1)
+    for [index, candle] in htf_candles
+        if tf_htf_show and not hide_candles
+            candle.draw_htf_candle(index, tf_ltf_previous, tf_htf_previous, show_ltf_lines, tf_htf_show, tf_low_high_line_style, tf_low_high_line_width, tf_low_high_line_color, tf_low_high_ltf_stop_at_cross, tf_bull_color, tf_bear_color, tf_bull_wick_border_color, tf_bear_wick_border_color, tf_ltf_dot, tf_dot_size, tf_dot_shape, show_dots, prev_levels, display_tf, show_tf_labels_param)
+    if tf_htf_show
+        if tf_only_recent_sweep
+            UDT_Sweep recent_sweep = na
+            for candle in htf_candles
+                if candle.htf_sweeps.size() > 0
+                    for [j, htf_sweep] in candle.htf_sweeps
+                        if (htf_sweep.formed or show_unconfirmed_sweeps) and not htf_sweep.invalidated and not htf_sweep.removed
+                            recent_sweep := htf_sweep
+                            break
+                    if not na(recent_sweep)
+                        break
+            if not na(recent_sweep)
+                if tf_htf_sweeps and not recent_sweep.invalidated
+                    recent_sweep.draw_sweep(false, false, tf_htf_sweeps, tf_sweep_ltf_stop_at_cross, tf_i_sweep_ltf_stop_at_cross, tf_sweep_line_style, tf_sweep_line_width, tf_sweep_line_color, tf_i_sweep_line_style, tf_i_sweep_line_width, tf_i_sweep_line_color, extend_main, extend_htf)
+                if tf_htf_i_sweeps and recent_sweep.invalidated
+                    recent_sweep.draw_sweep(false, false, tf_htf_i_sweeps, tf_sweep_ltf_stop_at_cross, tf_i_sweep_ltf_stop_at_cross, tf_sweep_line_style, tf_sweep_line_width, tf_sweep_line_color, tf_i_sweep_line_style, tf_i_sweep_line_width, tf_i_sweep_line_color, extend_main, extend_htf)
+        else
+            for [index2, candle2] in htf_candles
+                if candle2.htf_sweeps.size() > 0
+                    for [j, htf_sweep] in candle2.htf_sweeps
+                        if htf_sweep.formed or show_unconfirmed_sweeps
+                            if tf_htf_sweeps and not htf_sweep.invalidated
+                                htf_sweep.draw_sweep(false, false, tf_htf_sweeps, tf_sweep_ltf_stop_at_cross, tf_i_sweep_ltf_stop_at_cross, tf_sweep_line_style, tf_sweep_line_width, tf_sweep_line_color, tf_i_sweep_line_style, tf_i_sweep_line_width, tf_i_sweep_line_color, extend_main, extend_htf)
+                            if tf_htf_i_sweeps and htf_sweep.invalidated
+                                htf_sweep.draw_sweep(false, false, tf_htf_i_sweeps, tf_sweep_ltf_stop_at_cross, tf_i_sweep_ltf_stop_at_cross, tf_sweep_line_style, tf_sweep_line_width, tf_sweep_line_color, tf_i_sweep_line_style, tf_i_sweep_line_width, tf_i_sweep_line_color, extend_main, extend_htf)
+    if show_ltf_lines
+        htf_candles.plot_ltf(show_ltf_lines, tf_ltf_sweeps, tf_ltf_i_sweeps, tf_only_recent_sweep, tf_sweep_ltf_stop_at_cross, tf_i_sweep_ltf_stop_at_cross, tf_sweep_line_style, tf_sweep_line_width, tf_sweep_line_color, tf_i_sweep_line_style, tf_i_sweep_line_width, tf_i_sweep_line_color, extend_main, extend_htf)
+    if htf_sweeps_label_show and tf_htf_show
+        htf_candles.draw_htf_label(tf)
+    htf_candles
+method process_levels(array<PrevLevel> levels, bool is_high) =>
+    while levels.size() > 0
+        PrevLevel first = levels.get(0)
+        float price = first.price
+        array<string> tfs = array.new<string>()
+        array<int> ends = array.new<int>()
+        array<PrevLevel> group = array.new<PrevLevel>()
+        for i = levels.size() - 1 to 0
+            level = levels.get(i)
+            if math.abs(level.price - price) < syminfo.mintick / 10 // close enough, considering floating point
+                tfs.push(level.tf)
+                ends.push(level.end_x)
+                group.push(level)
+                levels.remove(i)
+        bool all_same_end = true
+        int common_end = array.get(ends, 0)
+        for end in ends
+            if end != common_end
+                all_same_end := false
+                break
+        if all_same_end
+            // combine
+            array.sort(tfs)
+            string txt = array.join(tfs, " + ")
+            style = is_high ? label.style_label_down : label.style_label_up
+            label lbl = label.new(x=common_end, y=price, text=txt, xloc=xloc.bar_index, color=#FFFFFF00, style=style, textcolor=tf_label_color, size=text_size(tf_label_size))
+            bin.bin_lbl.push(lbl)
+        else
+            // draw separate
+            for g in group
+                string txt = g.tf
+                style = is_high ? label.style_label_down : label.style_label_up
+                label lbl = label.new(x=g.end_x, y=price, text=txt, xloc=xloc.bar_index, color=#FFFFFF00, style=style, textcolor=tf_label_color, size=text_size(tf_label_size))
+                bin.bin_lbl.push(lbl)
+// # ========================================================================= #
+// # | Plotting |
+// # ========================================================================= #
+bin.clean_bin()
+string actual_tf_1 = get_actual_tf(htf_sweeps_tf_1_display_tf)
+string actual_tf_2 = get_actual_tf(htf_sweeps_tf_2_display_tf)
+string actual_tf_3 = get_actual_tf(htf_sweeps_tf_3_display_tf)
+var tf_1_show = htf_sweeps_tf_1_show and (htf_sweeps_tf_1_show_on_main_chart ? timeframe.in_seconds(timeframe.period) <= timeframe.in_seconds(actual_tf_1) : timeframe.in_seconds(timeframe.period) < timeframe.in_seconds(actual_tf_1))
+var tf_2_show = htf_sweeps_tf_2_show and (htf_sweeps_tf_2_show_on_main_chart ? timeframe.in_seconds(timeframe.period) <= timeframe.in_seconds(actual_tf_2) : timeframe.in_seconds(timeframe.period) < timeframe.in_seconds(actual_tf_2))
+var tf_3_show = htf_sweeps_tf_3_show and (htf_sweeps_tf_3_show_on_main_chart ? timeframe.in_seconds(timeframe.period) <= timeframe.in_seconds(actual_tf_3) : timeframe.in_seconds(timeframe.period) < timeframe.in_seconds(actual_tf_3))
+var tf_1_candle_show = htf_sweeps_tf_1_show and timeframe.in_seconds(timeframe.period) < timeframe.in_seconds(actual_tf_1)
+var tf_2_candle_show = htf_sweeps_tf_2_show and timeframe.in_seconds(timeframe.period) < timeframe.in_seconds(actual_tf_2)
+var tf_3_candle_show = htf_sweeps_tf_3_show and timeframe.in_seconds(timeframe.period) < timeframe.in_seconds(actual_tf_3)
+bool htf1_ltf_show = htf_sweeps_tf_1_ltf_lines_type != "None"
+bool htf1_htf_show = htf_sweeps_tf_1_htf_lines_type != "None"
+bool htf1_ltf_previous = htf_sweeps_tf_1_ltf_lines_type == "Lines" or htf_sweeps_tf_1_ltf_lines_type == "Sweeps + Lines"
+bool htf1_ltf_sweeps = htf_sweeps_tf_1_ltf_lines_type == "Sweeps" or htf_sweeps_tf_1_ltf_lines_type == "Sweeps + Lines" or htf_sweeps_tf_1_ltf_lines_type == "Sweeps + Dots"
+bool htf1_ltf_i_sweeps = false
+bool htf1_ltf_dot = str.contains(htf_sweeps_tf_1_ltf_lines_type, "Dots")
+bool htf1_htf_previous = htf_sweeps_tf_1_htf_lines_type == "Lines" or htf_sweeps_tf_1_htf_lines_type == "Sweeps + Lines"
+bool htf1_htf_sweeps = htf_sweeps_tf_1_htf_lines_type == "Sweeps" or htf_sweeps_tf_1_htf_lines_type == "Sweeps + Lines"
+bool htf1_htf_i_sweeps = false
+bool htf2_ltf_show = htf_sweeps_tf_2_ltf_lines_type != "None"
+bool htf2_htf_show = htf_sweeps_tf_2_htf_lines_type != "None"
+bool htf2_ltf_previous = htf_sweeps_tf_2_ltf_lines_type == "Lines" or htf_sweeps_tf_2_ltf_lines_type == "Sweeps + Lines"
+bool htf2_ltf_sweeps = htf_sweeps_tf_2_ltf_lines_type == "Sweeps" or htf_sweeps_tf_2_ltf_lines_type == "Sweeps + Lines" or htf_sweeps_tf_2_ltf_lines_type == "Sweeps + Dots"
+bool htf2_ltf_i_sweeps = false
+bool htf2_ltf_dot = str.contains(htf_sweeps_tf_2_ltf_lines_type, "Dots")
+bool htf2_htf_previous = htf_sweeps_tf_2_htf_lines_type == "Lines" or htf_sweeps_tf_2_htf_lines_type == "Sweeps + Lines"
+bool htf2_htf_sweeps = htf_sweeps_tf_2_htf_lines_type == "Sweeps" or htf_sweeps_tf_2_htf_lines_type == "Sweeps + Lines"
+bool htf2_htf_i_sweeps = false
+bool htf3_ltf_show = htf_sweeps_tf_3_ltf_lines_type != "None"
+bool htf3_htf_show = htf_sweeps_tf_3_htf_lines_type != "None"
+bool htf3_ltf_previous = htf_sweeps_tf_3_ltf_lines_type == "Lines" or htf_sweeps_tf_3_ltf_lines_type == "Sweeps + Lines"
+bool htf3_ltf_sweeps = htf_sweeps_tf_3_ltf_lines_type == "Sweeps" or htf_sweeps_tf_3_ltf_lines_type == "Sweeps + Lines" or htf_sweeps_tf_3_ltf_lines_type == "Sweeps + Dots"
+bool htf3_ltf_i_sweeps = false
+bool htf3_ltf_dot = str.contains(htf_sweeps_tf_3_ltf_lines_type, "Dots")
+bool htf3_htf_previous = htf_sweeps_tf_3_htf_lines_type == "Lines" or htf_sweeps_tf_3_htf_lines_type == "Sweeps + Lines"
+bool htf3_htf_sweeps = htf_sweeps_tf_3_htf_lines_type == "Sweeps" or htf_sweeps_tf_3_htf_lines_type == "Sweeps + Lines"
+bool htf3_htf_i_sweeps = false
+htf_sweeps_tf_1_i_sweep_ltf_stop_at_cross = htf_sweeps_tf_1_sweep_ltf_stop_at_cross
+htf_sweeps_tf_2_i_sweep_ltf_stop_at_cross = htf_sweeps_tf_2_sweep_ltf_stop_at_cross
+htf_sweeps_tf_3_i_sweep_ltf_stop_at_cross = htf_sweeps_tf_3_sweep_ltf_stop_at_cross
+// ── DOT VISIBILITY LOGIC (replace the old show_dots_1 / show_dots_2 / show_dots_3 block) ──
+// Rules you asked for:
+// 15m Dots → only on 1-3 min charts
+// 30m Dots → only on 1-5 min charts
+// 1h Dots → only on 1-30 min charts
+// 4h Dots → only on 1m-1h charts
+// D Dots → only on 1m-4h charts
+// W Dots → only on 1m-D charts
+// M Dots → only on 1m-D charts
+int chart_minutes = timeframe.in_seconds(timeframe.period) / 60
+bool show_dots_1 = switch htf_sweeps_tf_1_display_tf
+    "15m" => chart_minutes >= 1 and chart_minutes <= 3
+    "30m" => chart_minutes >= 1 and chart_minutes <= 5
+    "1h" => chart_minutes >= 1 and chart_minutes <= 15
+    "4h" => chart_minutes >= 1 and chart_minutes <= 60
+    "D" => chart_minutes >= 1 and chart_minutes <= 240
+    "W" => chart_minutes >= 1 and chart_minutes <= 1440 // 1m to 1D
+    "M" => chart_minutes >= 1 and chart_minutes <= 1440 // 1m to 1D
+    => false
+bool show_dots_2 = switch htf_sweeps_tf_2_display_tf
+    "15m" => chart_minutes >= 1 and chart_minutes <= 3
+    "30m" => chart_minutes >= 1 and chart_minutes <= 5
+    "1h" => chart_minutes >= 1 and chart_minutes <= 15
+    "4h" => chart_minutes >= 1 and chart_minutes <= 60
+    "D" => chart_minutes >= 1 and chart_minutes <= 240
+    "W" => chart_minutes >= 1 and chart_minutes <= 1440 // 1m to 1D
+    "M" => chart_minutes >= 1 and chart_minutes <= 1440 // 1m to 1D
+    => false
+bool show_dots_3 = switch htf_sweeps_tf_3_display_tf
+    "15m" => chart_minutes >= 1 and chart_minutes <= 3
+    "30m" => chart_minutes >= 1 and chart_minutes <= 5
+    "1h" => chart_minutes >= 1 and chart_minutes <= 15
+    "4h" => chart_minutes >= 1 and chart_minutes <= 60
+    "D" => chart_minutes >= 1 and chart_minutes <= 240
+    "W" => chart_minutes >= 1 and chart_minutes <= 1440 // 1m to 1D
+    "M" => chart_minutes >= 1 and chart_minutes <= 1440 // 1m to 1D
+    => false
+if tf_1_show
+    htf_1_candle = htf_1_candles.detect_htf_candle(actual_tf_1, ltf)
+    htf_1_candles.add_htf_candle(htf_1_candle, htf_sweeps_tf_1_number)
+    htf_1_candles := htf_1_candles.detect_sweeps(htf_sweeps_tf_1_only_recent_sweep, htf_sweeps_tf_1_sweep_ltf_stop_at_cross, htf_sweeps_tf_1_i_sweep_ltf_stop_at_cross)
+if tf_2_show
+    htf_2_candle = htf_2_candles.detect_htf_candle(actual_tf_2, ltf)
+    htf_2_candles.add_htf_candle(htf_2_candle, htf_sweeps_tf_2_number)
+    htf_2_candles := htf_2_candles.detect_sweeps(htf_sweeps_tf_2_only_recent_sweep, htf_sweeps_tf_2_sweep_ltf_stop_at_cross, htf_sweeps_tf_2_i_sweep_ltf_stop_at_cross)
+if tf_3_show
+    htf_3_candle = htf_3_candles.detect_htf_candle(actual_tf_3, ltf)
+    htf_3_candles.add_htf_candle(htf_3_candle, htf_sweeps_tf_3_number)
+    htf_3_candles := htf_3_candles.detect_sweeps(htf_sweeps_tf_3_only_recent_sweep, htf_sweeps_tf_3_sweep_ltf_stop_at_cross, htf_sweeps_tf_3_i_sweep_ltf_stop_at_cross)
+if barstate.islast
+    array<PrevLevel> prev_levels = array.new<PrevLevel>()
+    int offset = htf_sweeps_offset
+    if tf_1_show
+        htf_1_candles.position_htf_candles(offset)
+        htf_1_candles.plot_htf(actual_tf_1, htf1_ltf_previous, htf1_htf_previous, htf1_ltf_show, htf1_htf_show and tf_1_candle_show, htf_sweeps_tf_1_lines_only, htf1_ltf_sweeps, htf1_htf_sweeps, htf1_ltf_i_sweeps, htf1_htf_i_sweeps, htf1_prev_hl_line_style, htf1_prev_hl_line_width, htf1_prev_hl_line_color, htf_sweeps_tf_1_low_high_ltf_stop_at_cross, htf_sweeps_tf_1_only_recent_sweep, htf_sweeps_tf_1_sweep_ltf_stop_at_cross, htf_sweeps_tf_1_i_sweep_ltf_stop_at_cross, htf_sweeps_tf_1_sweep_line_style, htf_sweeps_tf_1_sweep_line_width, htf_sweeps_tf_1_sweep_line_color, htf_sweeps_tf_1_i_sweep_line_style, htf_sweeps_tf_1_i_sweep_line_width, htf_sweeps_tf_1_i_sweep_line_color, bull_color, bear_color, bull_wick_border_color, bear_wick_border_color, htf1_ltf_dot, htf_sweeps_tf_1_dot_size, htf_sweeps_tf_1_dot_shape, show_dots_1, prev_levels, htf_sweeps_tf_1_display_tf, show_tf_labels_1, htf_sweeps_tf_1_extend_main, htf_sweeps_tf_1_extend_htf)
+        // Draw HTF1 Open Line - from current candle open to HTF candle
+        if htf1_open_line_show and htf_1_candles.size() > 0
+            current_candle_1 = htf_1_candles.get(0)
+            int open_line_end_x = tf_1_candle_show ? current_candle_1.candle_left : bar_index + 5
+            line htf1_open_ln = line.new(x1=current_candle_1.o_idx, y1=current_candle_1.o, x2=open_line_end_x, y2=current_candle_1.o, xloc=xloc.bar_index, color=htf1_open_line_color, style=line_style(htf1_open_line_style), width=htf1_open_line_width)
+            bin.bin_ln.push(htf1_open_ln)
+        if not tf_1_candle_show and htf_1_candles.size() >= 2
+            candle = htf_1_candles.get(1)
+            if candle.is_closed
+                if htf1_ltf_previous
+                    if not na(candle.low_line)
+                        candle.low_line.delete()
+                    int end_x2_low = htf_sweeps_tf_1_low_high_ltf_stop_at_cross and not na(candle.low_cross_idx) ? candle.low_cross_idx : bar_index
+                    int line_end_low = end_x2_low
+                    if (extend_phl_forward or not htf_sweeps_tf_1_low_high_ltf_stop_at_cross) and end_x2_low == bar_index
+                        line_end_low += 5
+                    candle.low_line := line.new(x1=candle.l_idx, y1=candle.l, x2=line_end_low, y2=candle.l, xloc=xloc.bar_index, color=htf1_prev_hl_line_color, style=line_style(htf1_prev_hl_line_style), width=htf1_prev_hl_line_width)
+                    bin.bin_ln.push(candle.low_line)
+                    if not na(candle.high_line)
+                        candle.high_line.delete()
+                    int end_x2_high = htf_sweeps_tf_1_low_high_ltf_stop_at_cross and not na(candle.high_cross_idx) ? candle.high_cross_idx : bar_index
+                    int line_end_high = end_x2_high
+                    if (extend_phl_forward or not htf_sweeps_tf_1_low_high_ltf_stop_at_cross) and end_x2_high == bar_index
+                        line_end_high += 5
+                    candle.high_line := line.new(x1=candle.h_idx, y1=candle.h, x2=line_end_high, y2=candle.h, xloc=xloc.bar_index, color=htf1_prev_hl_line_color, style=line_style(htf1_prev_hl_line_style), width=htf1_prev_hl_line_width)
+                    bin.bin_ln.push(candle.high_line)
+                    if show_tf_labels_1
+                        prev_levels.push(PrevLevel.new(candle.h, htf_sweeps_tf_1_display_tf, line_end_high, true))
+                        prev_levels.push(PrevLevel.new(candle.l, htf_sweeps_tf_1_display_tf, line_end_low, false))
+                if htf1_ltf_dot and show_dots_1
+                    string dot_text = ""
+                    color dot_bg_color = htf1_prev_hl_line_color
+                    color dot_text_color = color.white
+                    label high_dot = label.new(x=candle.h_idx, y=candle.h, text=dot_text, style=draw_dot_shape(htf_sweeps_tf_1_dot_shape), size=text_size(htf_sweeps_tf_1_dot_size), color=dot_bg_color, textcolor=dot_text_color)
+                    bin.bin_lbl.push(high_dot)
+                    label low_dot = label.new(x=candle.l_idx, y=candle.l, text=dot_text, style=draw_dot_shape(htf_sweeps_tf_1_dot_shape), size=text_size(htf_sweeps_tf_1_dot_size), color=dot_bg_color, textcolor=dot_text_color)
+                    bin.bin_lbl.push(low_dot)
+        if tf_1_candle_show
+            int rightmost = na
+            for candle in htf_1_candles
+                if na(rightmost) or candle.candle_rigth > rightmost
+                    rightmost := candle.candle_rigth
+            if not na(rightmost)
+                offset := (rightmost - bar_index) + htf_sweeps_distance_between
+    if tf_2_show
+        htf_2_candles.position_htf_candles(offset)
+        htf_2_candles.plot_htf(actual_tf_2, htf2_ltf_previous, htf2_htf_previous, htf2_ltf_show, htf2_htf_show and tf_2_candle_show, htf_sweeps_tf_2_lines_only, htf2_ltf_sweeps, htf2_htf_sweeps, htf2_ltf_i_sweeps, htf2_htf_i_sweeps, htf2_prev_hl_line_style, htf2_prev_hl_line_width, htf2_prev_hl_line_color, htf_sweeps_tf_2_low_high_ltf_stop_at_cross, htf_sweeps_tf_2_only_recent_sweep, htf_sweeps_tf_2_sweep_ltf_stop_at_cross, htf_sweeps_tf_2_i_sweep_ltf_stop_at_cross, htf_sweeps_tf_2_sweep_line_style, htf_sweeps_tf_2_sweep_line_width, htf_sweeps_tf_2_sweep_line_color, htf_sweeps_tf_2_i_sweep_line_style, htf_sweeps_tf_2_i_sweep_line_width, htf_sweeps_tf_2_i_sweep_line_color, bull_color, bear_color, bull_wick_border_color, bear_wick_border_color, htf2_ltf_dot, htf_sweeps_tf_2_dot_size, htf_sweeps_tf_2_dot_shape, show_dots_2, prev_levels, htf_sweeps_tf_2_display_tf, show_tf_labels_2, htf_sweeps_tf_2_extend_main, htf_sweeps_tf_2_extend_htf)
+        // Draw HTF2 Open Line - from current candle open to HTF candle
+        if htf2_open_line_show and htf_2_candles.size() > 0
+            current_candle_2 = htf_2_candles.get(0)
+            int open_line_end_x_2 = tf_2_candle_show ? current_candle_2.candle_left : bar_index + 5
+            line htf2_open_ln = line.new(x1=current_candle_2.o_idx, y1=current_candle_2.o, x2=open_line_end_x_2, y2=current_candle_2.o, xloc=xloc.bar_index, color=htf2_open_line_color, style=line_style(htf2_open_line_style), width=htf2_open_line_width)
+            bin.bin_ln.push(htf2_open_ln)
+        if not tf_2_candle_show and htf_2_candles.size() >= 2
+            candle = htf_2_candles.get(1)
+            if candle.is_closed
+                if htf2_ltf_previous
+                    if not na(candle.low_line)
+                        candle.low_line.delete()
+                    int end_x2_low = htf_sweeps_tf_2_low_high_ltf_stop_at_cross and not na(candle.low_cross_idx) ? candle.low_cross_idx : bar_index
+                    int line_end_low = end_x2_low
+                    if (extend_phl_forward or not htf_sweeps_tf_2_low_high_ltf_stop_at_cross) and end_x2_low == bar_index
+                        line_end_low += 5
+                    candle.low_line := line.new(x1=candle.l_idx, y1=candle.l, x2=line_end_low, y2=candle.l, xloc=xloc.bar_index, color=htf2_prev_hl_line_color, style=line_style(htf2_prev_hl_line_style), width=htf2_prev_hl_line_width)
+                    bin.bin_ln.push(candle.low_line)
+                    if not na(candle.high_line)
+                        candle.high_line.delete()
+                    int end_x2_high = htf_sweeps_tf_2_low_high_ltf_stop_at_cross and not na(candle.high_cross_idx) ? candle.high_cross_idx : bar_index
+                    int line_end_high = end_x2_high
+                    if (extend_phl_forward or not htf_sweeps_tf_2_low_high_ltf_stop_at_cross) and end_x2_high == bar_index
+                        line_end_high += 5
+                    candle.high_line := line.new(x1=candle.h_idx, y1=candle.h, x2=line_end_high, y2=candle.h, xloc=xloc.bar_index, color=htf2_prev_hl_line_color, style=line_style(htf2_prev_hl_line_style), width=htf2_prev_hl_line_width)
+                    bin.bin_ln.push(candle.high_line)
+                    if show_tf_labels_2
+                        prev_levels.push(PrevLevel.new(candle.h, htf_sweeps_tf_2_display_tf, line_end_high, true))
+                        prev_levels.push(PrevLevel.new(candle.l, htf_sweeps_tf_2_display_tf, line_end_low, false))
+                if htf2_ltf_dot and show_dots_2
+                    string dot_text = ""
+                    color dot_bg_color = htf2_prev_hl_line_color
+                    color dot_text_color = color.white
+                    label high_dot = label.new(x=candle.h_idx, y=candle.h, text=dot_text, style=draw_dot_shape(htf_sweeps_tf_2_dot_shape), size=text_size(htf_sweeps_tf_2_dot_size), color=dot_bg_color, textcolor=dot_text_color)
+                    bin.bin_lbl.push(high_dot)
+                    label low_dot = label.new(x=candle.l_idx, y=candle.l, text=dot_text, style=draw_dot_shape(htf_sweeps_tf_2_dot_shape), size=text_size(htf_sweeps_tf_2_dot_size), color=dot_bg_color, textcolor=dot_text_color)
+                    bin.bin_lbl.push(low_dot)
+        if tf_2_candle_show
+            int rightmost = na
+            for candle in htf_2_candles
+                if na(rightmost) or candle.candle_rigth > rightmost
+                    rightmost := candle.candle_rigth
+            if not na(rightmost)
+                offset := (rightmost - bar_index) + htf_sweeps_distance_between
+    if tf_3_show
+        htf_3_candles.position_htf_candles(offset)
+        htf_3_candles.plot_htf(actual_tf_3, htf3_ltf_previous, htf3_htf_previous, htf3_ltf_show, htf3_htf_show and tf_3_candle_show, htf_sweeps_tf_3_lines_only, htf3_ltf_sweeps, htf3_htf_sweeps, htf3_ltf_i_sweeps, htf3_htf_i_sweeps, htf3_prev_hl_line_style, htf3_prev_hl_line_width, htf3_prev_hl_line_color, htf_sweeps_tf_3_low_high_ltf_stop_at_cross, htf_sweeps_tf_3_only_recent_sweep, htf_sweeps_tf_3_sweep_ltf_stop_at_cross, htf_sweeps_tf_3_i_sweep_ltf_stop_at_cross, htf_sweeps_tf_3_sweep_line_style, htf_sweeps_tf_3_sweep_line_width, htf_sweeps_tf_3_sweep_line_color, htf_sweeps_tf_3_i_sweep_line_style, htf_sweeps_tf_3_i_sweep_line_width, htf_sweeps_tf_3_i_sweep_line_color, bull_color, bear_color, bull_wick_border_color, bear_wick_border_color, htf3_ltf_dot, htf_sweeps_tf_3_dot_size, htf_sweeps_tf_3_dot_shape, show_dots_3, prev_levels, htf_sweeps_tf_3_display_tf, show_tf_labels_3, htf_sweeps_tf_3_extend_main, htf_sweeps_tf_3_extend_htf)
+        // Draw HTF3 Open Line - from current candle open to HTF candle
+        if htf3_open_line_show and htf_3_candles.size() > 0
+            current_candle_3 = htf_3_candles.get(0)
+            int open_line_end_x_3 = tf_3_candle_show ? current_candle_3.candle_left : bar_index + 5
+            line htf3_open_ln = line.new(x1=current_candle_3.o_idx, y1=current_candle_3.o, x2=open_line_end_x_3, y2=current_candle_3.o, xloc=xloc.bar_index, color=htf3_open_line_color, style=line_style(htf3_open_line_style), width=htf3_open_line_width)
+            bin.bin_ln.push(htf3_open_ln)
+        if not tf_3_candle_show and htf_3_candles.size() >= 2
+            candle = htf_3_candles.get(1)
+            if candle.is_closed
+                if htf3_ltf_previous
+                    if not na(candle.low_line)
+                        candle.low_line.delete()
+                    int end_x2_low = htf_sweeps_tf_3_low_high_ltf_stop_at_cross and not na(candle.low_cross_idx) ? candle.low_cross_idx : bar_index
+                    int line_end_low = end_x2_low
+                    if (extend_phl_forward or not htf_sweeps_tf_3_low_high_ltf_stop_at_cross) and end_x2_low == bar_index
+                        line_end_low += 5
+                    candle.low_line := line.new(x1=candle.l_idx, y1=candle.l, x2=line_end_low, y2=candle.l, xloc=xloc.bar_index, color=htf3_prev_hl_line_color, style=line_style(htf3_prev_hl_line_style), width=htf3_prev_hl_line_width)
+                    bin.bin_ln.push(candle.low_line)
+                    if not na(candle.high_line)
+                        candle.high_line.delete()
+                    int end_x2_high = htf_sweeps_tf_3_low_high_ltf_stop_at_cross and not na(candle.high_cross_idx) ? candle.high_cross_idx : bar_index
+                    int line_end_high = end_x2_high
+                    if (extend_phl_forward or not htf_sweeps_tf_3_low_high_ltf_stop_at_cross) and end_x2_high == bar_index
+                        line_end_high += 5
+                    candle.high_line := line.new(x1=candle.h_idx, y1=candle.h, x2=line_end_high, y2=candle.h, xloc=xloc.bar_index, color=htf3_prev_hl_line_color, style=line_style(htf3_prev_hl_line_style), width=htf3_prev_hl_line_width)
+                    bin.bin_ln.push(candle.high_line)
+                    if show_tf_labels_3
+                        prev_levels.push(PrevLevel.new(candle.h, htf_sweeps_tf_3_display_tf, line_end_high, true))
+                        prev_levels.push(PrevLevel.new(candle.l, htf_sweeps_tf_3_display_tf, line_end_low, false))
+                if htf3_ltf_dot and show_dots_3
+                    string dot_text = ""
+                    color dot_bg_color = htf3_prev_hl_line_color
+                    color dot_text_color = color.white
+                    label high_dot = label.new(x=candle.h_idx, y=candle.h, text=dot_text, style=draw_dot_shape(htf_sweeps_tf_3_dot_shape), size=text_size(htf_sweeps_tf_3_dot_size), color=dot_bg_color, textcolor=dot_text_color)
+                    bin.bin_lbl.push(high_dot)
+                    label low_dot = label.new(x=candle.l_idx, y=candle.l, text=dot_text, style=draw_dot_shape(htf_sweeps_tf_3_dot_shape), size=text_size(htf_sweeps_tf_3_dot_size), color=dot_bg_color, textcolor=dot_text_color)
+                    bin.bin_lbl.push(low_dot)
+        if tf_3_candle_show
+            int rightmost = na
+            for candle in htf_3_candles
+                if na(rightmost) or candle.candle_rigth > rightmost
+                    rightmost := candle.candle_rigth
+            if not na(rightmost)
+                offset := (rightmost - bar_index) + htf_sweeps_distance_between
+    array<PrevLevel> highs = array.new<PrevLevel>()
+    array<PrevLevel> lows = array.new<PrevLevel>()
+    for level in prev_levels
+        if level.is_high
+            highs.push(level)
+        else
+            lows.push(level)
+    process_levels(highs, true)
+    process_levels(lows, false)
