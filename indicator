@@ -2,10 +2,17 @@
 // © wintonbanks
 //@version=5
 indicator("$ - HTF Sweeps & PO3", overlay=true, max_lines_count=500, max_labels_count=500, max_boxes_count=500, max_bars_back=2000, max_polylines_count=100)
+// Auto HTF Calculation ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Automatically determine HTFs based on current chart timeframe
+int chart_minutes = timeframe.in_seconds(timeframe.period) / 60
+string auto_htf_1 = chart_minutes <= 3 ? "15m" : chart_minutes <= 11 ? "1h" : "4h"
+string auto_htf_2 = chart_minutes <= 3 ? "4h" : chart_minutes <= 11 ? "D" : "W"
+string auto_htf_3 = chart_minutes <= 3 ? "W" : chart_minutes <= 11 ? "M" : ""
+bool auto_htf_3_enabled = chart_minutes <= 11
 // HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 htf_sweeps_tf_1_show = input.bool(defval = true, title = 'Enable', inline = '1', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-htf_sweeps_tf_1_number = input.int(defval = 3, title = '', minval = 1, maxval = 60, inline = '1', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-htf_sweeps_tf_1_display_tf = input.string(defval = '1h', title = '', options = ['M', 'W', 'D', '4h', '1h', '30m', '15m'], inline = '1', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = '2 - Number of HTF candles visible.\n\n3 - Reference timeframe for HTF.')
+htf_sweeps_tf_1_number = input.int(defval = 3, title = '', minval = 1, maxval = 60, inline = '1', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Number of HTF candles visible. HTF timeframe is automatically set based on chart timeframe.')
+htf_sweeps_tf_1_display_tf = auto_htf_1
 htf_sweeps_tf_1_ltf_lines_type = input.string(defval = 'Sweeps + Lines', title = 'Main', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'Dots', 'Sweeps + Dots', 'None'], inline = '2', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 htf_sweeps_tf_1_htf_lines_type = input.string(defval = 'Sweeps', title = 'HTF', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'None'], inline = '2', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Main - What lines are visible on Main chart.\n\nHTF - What lines are visible on HTF candles.')
 htf_sweeps_tf_1_sweep_line_color = input.color(defval = #b22833, title = '', inline = '3', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
@@ -31,8 +38,8 @@ string htf_sweeps_tf_1_dot_size = 'Tiny'
 string htf_sweeps_tf_1_dot_shape = 'Diamond'
 // HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 htf_sweeps_tf_2_show = input.bool(defval = true, title = 'Enable', inline = '1', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-htf_sweeps_tf_2_number = input.int(defval = 2, title = '', minval = 1, maxval = 60, inline = '1', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-htf_sweeps_tf_2_display_tf = input.string(defval = '4h', title = '', options = ['M', 'W', 'D', '4h', '1h', '30m', '15m'], inline = '1', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = '2 - Number of HTF candles visible.\n\n3 - Reference timeframe for HTF.')
+htf_sweeps_tf_2_number = input.int(defval = 2, title = '', minval = 1, maxval = 60, inline = '1', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Number of HTF candles visible. HTF timeframe is automatically set based on chart timeframe.')
+htf_sweeps_tf_2_display_tf = auto_htf_2
 htf_sweeps_tf_2_ltf_lines_type = input.string(defval = 'None', title = 'Main', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'Dots', 'Sweeps + Dots', 'None'], inline = '2', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 htf_sweeps_tf_2_htf_lines_type = input.string(defval = 'Sweeps', title = 'HTF', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'None'], inline = '2', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Main - What lines are visible on Main chart.\n\nHTF - What lines are visible on HTF candles.')
 htf_sweeps_tf_2_sweep_line_color = input.color(defval = #b22833, title = '', inline = '3', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
@@ -57,9 +64,9 @@ htf2_show_close_time = input.bool(defval = true, title = 'Show Close Time', inli
 string htf_sweeps_tf_2_dot_size = 'Tiny'
 string htf_sweeps_tf_2_dot_shape = 'Diamond'
 // HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-htf_sweeps_tf_3_show = input.bool(defval = false, title = 'Enable', inline = '1', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-htf_sweeps_tf_3_number = input.int(defval = 3, title = '', minval = 1, maxval = 60, inline = '1', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-htf_sweeps_tf_3_display_tf = input.string(defval = '30m', title = '', options = ['M', 'W', 'D', '4h', '1h', '30m', '15m'], inline = '1', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = '2 - Number of HTF candles visible.\n\n3 - Reference timeframe for HTF.')
+htf_sweeps_tf_3_show = auto_htf_3_enabled and input.bool(defval = true, title = 'Enable', inline = '1', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'HTF3 is automatically enabled for charts ≤11 minutes.')
+htf_sweeps_tf_3_number = input.int(defval = 3, title = '', minval = 1, maxval = 60, inline = '1', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Number of HTF candles visible. HTF timeframe is automatically set based on chart timeframe.')
+htf_sweeps_tf_3_display_tf = auto_htf_3
 htf_sweeps_tf_3_ltf_lines_type = input.string(defval = 'None', title = 'Main', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'Dots', 'Sweeps + Dots', 'None'], inline = '2', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 htf_sweeps_tf_3_htf_lines_type = input.string(defval = 'Sweeps', title = 'HTF', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'None'], inline = '2', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Main - What lines are visible on Main chart.\n\nHTF - What lines are visible on HTF candles.')
 htf_sweeps_tf_3_sweep_line_color = input.color(defval = #b22833, title = '', inline = '3', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
