@@ -101,6 +101,11 @@ htf_sweeps_alerts_prev_high_low = input.bool(defval = true, title = 'Previous Ca
 htf_sweeps_alerts_sweep_formation = input.bool(defval = false, title = 'Sweep Formation', tooltip = '1. Triggers an alert when the price reaches the exact high or low of the previous higher timeframe candle.\n\n2. Triggers an alert when a new sweep is formed. A sweep occurs when price moves beyond the high (bullish sweep) or low (bearish sweep) of a previous higher timeframe candle and meets specific conditions, indicating potential liquidity capture.', inline = 'alert3', group = 'Alerts ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 htf_sweeps_session_restriction = input.string(defval = 'London', title = '', options = ['London', 'New York', 'London + New York', 'London (DST)', 'New York (DST)', 'London + New York (DST)', 'Disabled'], inline = 'alert2', group = 'Alerts ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Restrict alerts to a specific session.\n\nLondon - 02:00-05:00 UTC-4.\nNew York - 07:00-11:00 UTC-4.\n\nDaylight Savings:\nLondon - 01:00-04:00 UTC-4.\nNew York - 06:00-10:00 UTC-4.\n\nDisabled - no time restriction for alerts.')
 _ = input.string(defval = 'Alert Info', title = '', options = ['Alert Info'], tooltip = 'To set up alerts for the indicator, firstly toggle the alerts above that you want to be active. Then create a new alert and select the indicator under the ‘Condition’ dropdown list.\n\nFor optimal performance, set the alert interval in the alert window to match your preferred entry timeframe.\n\nThis automates the alerts and avoids having to manually add alerts throughout the day.\n\nIf you would like to change which alert toggles are active; you will need to delete your alert, adjust the toggles and then recreate the alert.', inline = 'aler1', group = 'Alerts ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+// Entries (CISD)
+cisd_show = input.bool(defval = true, title = 'CISD', inline = 'cisd1', group = 'Entries ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+cisd_line_color = input.color(defval = color.black, title = '', inline = 'cisd1', group = 'Entries ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+cisd_line_width = input.int(defval = 1, title = 'Width', minval = 1, inline = 'cisd1', group = 'Entries ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+cisd_label_size = input.string(defval = 'Small', title = 'Label Size', options = ['Tiny', 'Small', 'Normal', 'Large', 'Huge', 'Auto'], inline = 'cisd2', group = 'Entries ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 // # Define htf_sweeps_real_time_sweep_show as a variable to preserve backend functionality
 var bool htf_sweeps_real_time_sweep_show = false
 // # ========================================================================= #
@@ -304,6 +309,33 @@ var htf_sweeps_tf_3_i_sweep_line_style = "Dashed"
 var htf_sweeps_tf_3_i_sweep_line_width = 1
 var htf_sweeps_tf_3_i_sweep_line_color = #706c69
 bool show_unconfirmed_sweeps = true
+// CISD state (per HTF group)
+var bool htf1_cisd_wait = false
+var bool htf2_cisd_wait = false
+var bool htf3_cisd_wait = false
+var bool htf1_cisd_active = false
+var bool htf2_cisd_active = false
+var bool htf3_cisd_active = false
+var float htf1_cisd_price = na
+var float htf2_cisd_price = na
+var float htf3_cisd_price = na
+var int htf1_cisd_start_x = na
+var int htf2_cisd_start_x = na
+var int htf3_cisd_start_x = na
+var int htf1_last_sweep_id = na
+var int htf2_last_sweep_id = na
+var int htf3_last_sweep_id = na
+var int htf1_last_sweep_cross = na
+var int htf2_last_sweep_cross = na
+var int htf3_last_sweep_cross = na
+var int htf1_cisd_end_x = na
+var int htf2_cisd_end_x = na
+var int htf3_cisd_end_x = na
+// LTF candle tracking for CISD detection
+var float last_bull_open = na
+var int last_bull_idx = na
+var float last_bear_open = na
+var int last_bear_idx = na
 // # ========================================================================= #
 // # | Methods Continued |
 // # ========================================================================= #
@@ -426,6 +458,26 @@ method position_htf_sweeps(array<UDT_HTF_Candle> htf_candles, int buffer) =>
                     // For a sweep on the absolute newest candle (rare/unconfirmed), extend a little extra
                     sweep.x2 := candle.candle_rigth + 2
     htf_candles
+method latest_sweep_id(array<UDT_HTF_Candle> htf_candles) =>
+    int latest = na
+    for candle in htf_candles
+        for sweep in candle.ltf_sweeps
+            if (sweep.formed or show_unconfirmed_sweeps) and not sweep.removed and not sweep.invalidated
+                int id = sweep.x1
+                if na(latest) or id > latest
+                    latest := id
+    latest
+method latest_sweep_cross(array<UDT_HTF_Candle> htf_candles) =>
+    int latest_id = na
+    int latest_cross = na
+    for candle in htf_candles
+        for sweep in candle.ltf_sweeps
+            if (sweep.formed or show_unconfirmed_sweeps) and not sweep.removed and not sweep.invalidated
+                int id = sweep.x1
+                if na(latest_id) or id > latest_id
+                    latest_id := id
+                    latest_cross := sweep.cross_idx
+    latest_cross
 method invalidate_sweep(UDT_Sweep sweep, UDT_HTF_Candle c2) =>
     c2_bull = c2.bull
     invalidated = not na(sweep.y) and (sweep.bull ? (c2_bull ? sweep.y < c2.c : sweep.y < c2.o) : (c2_bull ? sweep.y > c2.o : sweep.y > c2.c))
@@ -906,18 +958,101 @@ bool show_dots_3 = switch htf_sweeps_tf_3_display_tf
     "W" => chart_minutes >= 1 and chart_minutes <= 1440 // 1m to 1D
     "M" => chart_minutes >= 1 and chart_minutes <= 1440 // 1m to 1D
     => false
+// LTF candle state for CISD detection (use previous candle context)
+bool is_bull_candle = close > open
+bool is_bear_candle = close < open
 if tf_1_show
     htf_1_candle = htf_1_candles.detect_htf_candle(actual_tf_1, ltf)
     htf_1_candles.add_htf_candle(htf_1_candle, htf_sweeps_tf_1_number)
     htf_1_candles := htf_1_candles.detect_sweeps(htf_sweeps_tf_1_only_recent_sweep, htf_sweeps_tf_1_sweep_ltf_stop_at_cross, htf_sweeps_tf_1_i_sweep_ltf_stop_at_cross)
+    int latest_sweep_1 = htf_1_candles.latest_sweep_id()
+    if not na(latest_sweep_1) and latest_sweep_1 != htf1_last_sweep_id
+        htf1_last_sweep_id := latest_sweep_1
+        htf1_last_sweep_cross := htf_1_candles.latest_sweep_cross()
+        htf1_cisd_wait := true
+        htf1_cisd_active := false
+        htf1_cisd_price := na
+        htf1_cisd_start_x := na
 if tf_2_show
     htf_2_candle = htf_2_candles.detect_htf_candle(actual_tf_2, ltf)
     htf_2_candles.add_htf_candle(htf_2_candle, htf_sweeps_tf_2_number)
     htf_2_candles := htf_2_candles.detect_sweeps(htf_sweeps_tf_2_only_recent_sweep, htf_sweeps_tf_2_sweep_ltf_stop_at_cross, htf_sweeps_tf_2_i_sweep_ltf_stop_at_cross)
+    int latest_sweep_2 = htf_2_candles.latest_sweep_id()
+    if not na(latest_sweep_2) and latest_sweep_2 != htf2_last_sweep_id
+        htf2_last_sweep_id := latest_sweep_2
+        htf2_last_sweep_cross := htf_2_candles.latest_sweep_cross()
+        htf2_cisd_wait := true
+        htf2_cisd_active := false
+        htf2_cisd_price := na
+        htf2_cisd_start_x := na
 if tf_3_show
     htf_3_candle = htf_3_candles.detect_htf_candle(actual_tf_3, ltf)
     htf_3_candles.add_htf_candle(htf_3_candle, htf_sweeps_tf_3_number)
     htf_3_candles := htf_3_candles.detect_sweeps(htf_sweeps_tf_3_only_recent_sweep, htf_sweeps_tf_3_sweep_ltf_stop_at_cross, htf_sweeps_tf_3_i_sweep_ltf_stop_at_cross)
+    int latest_sweep_3 = htf_3_candles.latest_sweep_id()
+    if not na(latest_sweep_3) and latest_sweep_3 != htf3_last_sweep_id
+        htf3_last_sweep_id := latest_sweep_3
+        htf3_last_sweep_cross := htf_3_candles.latest_sweep_cross()
+        htf3_cisd_wait := true
+        htf3_cisd_active := false
+        htf3_cisd_price := na
+        htf3_cisd_start_x := na
+// CISD detection (after sweep)
+bool sweep_1_ready = na(htf1_last_sweep_cross) ? true : bar_index > htf1_last_sweep_cross
+bool sweep_2_ready = na(htf2_last_sweep_cross) ? true : bar_index > htf2_last_sweep_cross
+bool sweep_3_ready = na(htf3_last_sweep_cross) ? true : bar_index > htf3_last_sweep_cross
+if htf1_cisd_wait and not htf1_cisd_active and sweep_1_ready
+    int ob_idx_1 = na
+    float ob_open_1 = na
+    if not na(last_bull_open) and close < last_bull_open
+        ob_idx_1 := last_bull_idx
+        ob_open_1 := last_bull_open
+    if not na(last_bear_open) and close > last_bear_open
+        if na(ob_idx_1) or last_bear_idx > ob_idx_1
+            ob_idx_1 := last_bear_idx
+            ob_open_1 := last_bear_open
+    if not na(ob_idx_1)
+        htf1_cisd_active := true
+        htf1_cisd_wait := false
+        htf1_cisd_price := ob_open_1
+        htf1_cisd_start_x := ob_idx_1
+if htf2_cisd_wait and not htf2_cisd_active and sweep_2_ready
+    int ob_idx_2 = na
+    float ob_open_2 = na
+    if not na(last_bull_open) and close < last_bull_open
+        ob_idx_2 := last_bull_idx
+        ob_open_2 := last_bull_open
+    if not na(last_bear_open) and close > last_bear_open
+        if na(ob_idx_2) or last_bear_idx > ob_idx_2
+            ob_idx_2 := last_bear_idx
+            ob_open_2 := last_bear_open
+    if not na(ob_idx_2)
+        htf2_cisd_active := true
+        htf2_cisd_wait := false
+        htf2_cisd_price := ob_open_2
+        htf2_cisd_start_x := ob_idx_2
+if htf3_cisd_wait and not htf3_cisd_active and sweep_3_ready
+    int ob_idx_3 = na
+    float ob_open_3 = na
+    if not na(last_bull_open) and close < last_bull_open
+        ob_idx_3 := last_bull_idx
+        ob_open_3 := last_bull_open
+    if not na(last_bear_open) and close > last_bear_open
+        if na(ob_idx_3) or last_bear_idx > ob_idx_3
+            ob_idx_3 := last_bear_idx
+            ob_open_3 := last_bear_open
+    if not na(ob_idx_3)
+        htf3_cisd_active := true
+        htf3_cisd_wait := false
+        htf3_cisd_price := ob_open_3
+        htf3_cisd_start_x := ob_idx_3
+// Update last bullish/bearish candles after CISD checks
+if is_bull_candle
+    last_bull_open := open
+    last_bull_idx := bar_index
+if is_bear_candle
+    last_bear_open := open
+    last_bear_idx := bar_index
 if barstate.islast
     array<PrevLevel> prev_levels = array.new<PrevLevel>()
     int offset = htf_sweeps_offset
@@ -963,11 +1098,24 @@ if barstate.islast
                     bin.bin_lbl.push(low_dot)
         if tf_1_candle_show
             int rightmost = na
+            int rightmost_left = na
             for candle in htf_1_candles
                 if na(rightmost) or candle.candle_rigth > rightmost
                     rightmost := candle.candle_rigth
+                if na(rightmost_left) or candle.candle_left > rightmost_left
+                    rightmost_left := candle.candle_left
             if not na(rightmost)
                 offset := (rightmost - bar_index) + htf_sweeps_distance_between
+            htf1_cisd_end_x := not na(rightmost_left) ? rightmost_left : bar_index + 5
+        else
+            htf1_cisd_end_x := bar_index + 5
+        // Draw CISD (HTF1)
+        if cisd_show and htf1_cisd_active and not na(htf1_cisd_price) and not na(htf1_cisd_start_x)
+            int cisd_end_x_1 = not na(htf1_cisd_end_x) ? htf1_cisd_end_x : bar_index + 5
+            line cisd_ln_1 = line.new(x1=htf1_cisd_start_x, y1=htf1_cisd_price, x2=cisd_end_x_1, y2=htf1_cisd_price, xloc=xloc.bar_index, color=cisd_line_color, style=line.style_solid, width=cisd_line_width)
+            bin.bin_ln.push(cisd_ln_1)
+            label cisd_lbl_1 = label.new(x=cisd_end_x_1, y=htf1_cisd_price, text='cisd', xloc=xloc.bar_index, color=#FFFFFF00, style=label.style_label_left, textcolor=cisd_line_color, size=text_size(cisd_label_size))
+            bin.bin_lbl.push(cisd_lbl_1)
     if tf_2_show
         htf_2_candles.position_htf_candles(offset)
         htf_2_candles.plot_htf(actual_tf_2, htf2_ltf_previous, htf2_htf_previous, htf2_ltf_show, htf2_htf_show and tf_2_candle_show, htf_sweeps_tf_2_lines_only, htf2_ltf_sweeps, htf2_htf_sweeps, htf2_ltf_i_sweeps, htf2_htf_i_sweeps, htf2_prev_hl_line_style, htf2_prev_hl_line_width, htf2_prev_hl_line_color, htf_sweeps_tf_2_low_high_ltf_stop_at_cross, htf_sweeps_tf_2_only_recent_sweep, htf_sweeps_tf_2_sweep_ltf_stop_at_cross, htf_sweeps_tf_2_i_sweep_ltf_stop_at_cross, htf_sweeps_tf_2_sweep_line_style, htf_sweeps_tf_2_sweep_line_width, htf_sweeps_tf_2_sweep_line_color, htf_sweeps_tf_2_i_sweep_line_style, htf_sweeps_tf_2_i_sweep_line_width, htf_sweeps_tf_2_i_sweep_line_color, bull_color, bear_color, bull_wick_border_color, bear_wick_border_color, htf2_ltf_dot, htf_sweeps_tf_2_dot_size, htf_sweeps_tf_2_dot_shape, show_dots_2, prev_levels, htf_sweeps_tf_2_display_tf, show_tf_labels_2, htf_sweeps_tf_2_extend_main, htf_sweeps_tf_2_extend_htf)
@@ -1010,11 +1158,24 @@ if barstate.islast
                     bin.bin_lbl.push(low_dot)
         if tf_2_candle_show
             int rightmost = na
+            int rightmost_left = na
             for candle in htf_2_candles
                 if na(rightmost) or candle.candle_rigth > rightmost
                     rightmost := candle.candle_rigth
+                if na(rightmost_left) or candle.candle_left > rightmost_left
+                    rightmost_left := candle.candle_left
             if not na(rightmost)
                 offset := (rightmost - bar_index) + htf_sweeps_distance_between
+            htf2_cisd_end_x := not na(rightmost_left) ? rightmost_left : bar_index + 5
+        else
+            htf2_cisd_end_x := bar_index + 5
+        // Draw CISD (HTF2)
+        if cisd_show and htf2_cisd_active and not na(htf2_cisd_price) and not na(htf2_cisd_start_x)
+            int cisd_end_x_2 = not na(htf2_cisd_end_x) ? htf2_cisd_end_x : bar_index + 5
+            line cisd_ln_2 = line.new(x1=htf2_cisd_start_x, y1=htf2_cisd_price, x2=cisd_end_x_2, y2=htf2_cisd_price, xloc=xloc.bar_index, color=cisd_line_color, style=line.style_solid, width=cisd_line_width)
+            bin.bin_ln.push(cisd_ln_2)
+            label cisd_lbl_2 = label.new(x=cisd_end_x_2, y=htf2_cisd_price, text='cisd', xloc=xloc.bar_index, color=#FFFFFF00, style=label.style_label_left, textcolor=cisd_line_color, size=text_size(cisd_label_size))
+            bin.bin_lbl.push(cisd_lbl_2)
     if tf_3_show
         htf_3_candles.position_htf_candles(offset)
         htf_3_candles.plot_htf(actual_tf_3, htf3_ltf_previous, htf3_htf_previous, htf3_ltf_show, htf3_htf_show and tf_3_candle_show, htf_sweeps_tf_3_lines_only, htf3_ltf_sweeps, htf3_htf_sweeps, htf3_ltf_i_sweeps, htf3_htf_i_sweeps, htf3_prev_hl_line_style, htf3_prev_hl_line_width, htf3_prev_hl_line_color, htf_sweeps_tf_3_low_high_ltf_stop_at_cross, htf_sweeps_tf_3_only_recent_sweep, htf_sweeps_tf_3_sweep_ltf_stop_at_cross, htf_sweeps_tf_3_i_sweep_ltf_stop_at_cross, htf_sweeps_tf_3_sweep_line_style, htf_sweeps_tf_3_sweep_line_width, htf_sweeps_tf_3_sweep_line_color, htf_sweeps_tf_3_i_sweep_line_style, htf_sweeps_tf_3_i_sweep_line_width, htf_sweeps_tf_3_i_sweep_line_color, bull_color, bear_color, bull_wick_border_color, bear_wick_border_color, htf3_ltf_dot, htf_sweeps_tf_3_dot_size, htf_sweeps_tf_3_dot_shape, show_dots_3, prev_levels, htf_sweeps_tf_3_display_tf, show_tf_labels_3, htf_sweeps_tf_3_extend_main, htf_sweeps_tf_3_extend_htf)
@@ -1057,11 +1218,24 @@ if barstate.islast
                     bin.bin_lbl.push(low_dot)
         if tf_3_candle_show
             int rightmost = na
+            int rightmost_left = na
             for candle in htf_3_candles
                 if na(rightmost) or candle.candle_rigth > rightmost
                     rightmost := candle.candle_rigth
+                if na(rightmost_left) or candle.candle_left > rightmost_left
+                    rightmost_left := candle.candle_left
             if not na(rightmost)
                 offset := (rightmost - bar_index) + htf_sweeps_distance_between
+            htf3_cisd_end_x := not na(rightmost_left) ? rightmost_left : bar_index + 5
+        else
+            htf3_cisd_end_x := bar_index + 5
+        // Draw CISD (HTF3)
+        if cisd_show and htf3_cisd_active and not na(htf3_cisd_price) and not na(htf3_cisd_start_x)
+            int cisd_end_x_3 = not na(htf3_cisd_end_x) ? htf3_cisd_end_x : bar_index + 5
+            line cisd_ln_3 = line.new(x1=htf3_cisd_start_x, y1=htf3_cisd_price, x2=cisd_end_x_3, y2=htf3_cisd_price, xloc=xloc.bar_index, color=cisd_line_color, style=line.style_solid, width=cisd_line_width)
+            bin.bin_ln.push(cisd_ln_3)
+            label cisd_lbl_3 = label.new(x=cisd_end_x_3, y=htf3_cisd_price, text='cisd', xloc=xloc.bar_index, color=#FFFFFF00, style=label.style_label_left, textcolor=cisd_line_color, size=text_size(cisd_label_size))
+            bin.bin_lbl.push(cisd_lbl_3)
     array<PrevLevel> highs = array.new<PrevLevel>()
     array<PrevLevel> lows = array.new<PrevLevel>()
     for level in prev_levels
