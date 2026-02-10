@@ -2,10 +2,17 @@
 // © wintonbanks
 //@version=5
 indicator("$ - HTF Sweeps & PO3", overlay=true, max_lines_count=500, max_labels_count=500, max_boxes_count=500, max_bars_back=2000, max_polylines_count=100)
+// Auto HTF Calculation ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Automatically determine HTFs based on current chart timeframe
+int chart_minutes = timeframe.in_seconds(timeframe.period) / 60
+string auto_htf_1 = chart_minutes <= 3 ? "15m" : chart_minutes <= 11 ? "1h" : "4h"
+string auto_htf_2 = chart_minutes <= 3 ? "4h" : chart_minutes <= 11 ? "D" : "W"
+string auto_htf_3 = chart_minutes <= 3 ? "W" : chart_minutes <= 11 ? "M" : ""
+bool auto_htf_3_enabled = chart_minutes <= 11
 // HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 htf_sweeps_tf_1_show = input.bool(defval = true, title = 'Enable', inline = '1', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-htf_sweeps_tf_1_number = input.int(defval = 3, title = '', minval = 1, maxval = 60, inline = '1', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-htf_sweeps_tf_1_display_tf = input.string(defval = '1h', title = '', options = ['M', 'W', 'D', '4h', '1h', '30m', '15m'], inline = '1', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = '2 - Number of HTF candles visible.\n\n3 - Reference timeframe for HTF.')
+htf_sweeps_tf_1_number = input.int(defval = 3, title = '', minval = 1, maxval = 60, inline = '1', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Number of HTF candles visible. HTF timeframe is automatically set based on chart timeframe.')
+htf_sweeps_tf_1_display_tf = auto_htf_1
 htf_sweeps_tf_1_ltf_lines_type = input.string(defval = 'Sweeps + Lines', title = 'Main', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'Dots', 'Sweeps + Dots', 'None'], inline = '2', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 htf_sweeps_tf_1_htf_lines_type = input.string(defval = 'Sweeps', title = 'HTF', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'None'], inline = '2', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Main - What lines are visible on Main chart.\n\nHTF - What lines are visible on HTF candles.')
 htf_sweeps_tf_1_sweep_line_color = input.color(defval = #b22833, title = '', inline = '3', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
@@ -26,12 +33,13 @@ htf1_open_line_show = input.bool(defval = true, title = 'Show HTF Open Line', in
 htf1_open_line_color = input.color(defval = #2962FF, title = '', inline = '10', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 htf1_open_line_width = input.int(defval = 1, title = 'Width', minval = 1, inline = '10', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 htf1_open_line_style = input.string(defval = 'Dashed', title = '', options = ['Solid', 'Dashed', 'Dotted'], inline = '10', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf1_show_close_time = input.bool(defval = true, title = 'Show Close Time', inline = '11', group = 'HTF1 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Display a countdown timer showing when the current HTF candle will close.')
 string htf_sweeps_tf_1_dot_size = 'Tiny'
 string htf_sweeps_tf_1_dot_shape = 'Diamond'
 // HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 htf_sweeps_tf_2_show = input.bool(defval = true, title = 'Enable', inline = '1', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-htf_sweeps_tf_2_number = input.int(defval = 2, title = '', minval = 1, maxval = 60, inline = '1', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-htf_sweeps_tf_2_display_tf = input.string(defval = '4h', title = '', options = ['M', 'W', 'D', '4h', '1h', '30m', '15m'], inline = '1', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = '2 - Number of HTF candles visible.\n\n3 - Reference timeframe for HTF.')
+htf_sweeps_tf_2_number = input.int(defval = 2, title = '', minval = 1, maxval = 60, inline = '1', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Number of HTF candles visible. HTF timeframe is automatically set based on chart timeframe.')
+htf_sweeps_tf_2_display_tf = auto_htf_2
 htf_sweeps_tf_2_ltf_lines_type = input.string(defval = 'None', title = 'Main', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'Dots', 'Sweeps + Dots', 'None'], inline = '2', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 htf_sweeps_tf_2_htf_lines_type = input.string(defval = 'Sweeps', title = 'HTF', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'None'], inline = '2', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Main - What lines are visible on Main chart.\n\nHTF - What lines are visible on HTF candles.')
 htf_sweeps_tf_2_sweep_line_color = input.color(defval = #b22833, title = '', inline = '3', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
@@ -52,12 +60,13 @@ htf2_open_line_show = input.bool(defval = true, title = 'Show HTF Open Line', in
 htf2_open_line_color = input.color(defval = #FF6D00, title = '', inline = '10', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 htf2_open_line_width = input.int(defval = 1, title = 'Width', minval = 1, inline = '10', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 htf2_open_line_style = input.string(defval = 'Dashed', title = '', options = ['Solid', 'Dashed', 'Dotted'], inline = '10', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf2_show_close_time = input.bool(defval = true, title = 'Show Close Time', inline = '11', group = 'HTF2 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Display a countdown timer showing when the current HTF candle will close.')
 string htf_sweeps_tf_2_dot_size = 'Tiny'
 string htf_sweeps_tf_2_dot_shape = 'Diamond'
 // HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-htf_sweeps_tf_3_show = input.bool(defval = false, title = 'Enable', inline = '1', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-htf_sweeps_tf_3_number = input.int(defval = 3, title = '', minval = 1, maxval = 60, inline = '1', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-htf_sweeps_tf_3_display_tf = input.string(defval = '30m', title = '', options = ['M', 'W', 'D', '4h', '1h', '30m', '15m'], inline = '1', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = '2 - Number of HTF candles visible.\n\n3 - Reference timeframe for HTF.')
+htf_sweeps_tf_3_show = auto_htf_3_enabled and input.bool(defval = true, title = 'Enable', inline = '1', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'HTF3 is automatically enabled for charts ≤11 minutes.')
+htf_sweeps_tf_3_number = input.int(defval = 3, title = '', minval = 1, maxval = 60, inline = '1', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Number of HTF candles visible. HTF timeframe is automatically set based on chart timeframe.')
+htf_sweeps_tf_3_display_tf = auto_htf_3
 htf_sweeps_tf_3_ltf_lines_type = input.string(defval = 'None', title = 'Main', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'Dots', 'Sweeps + Dots', 'None'], inline = '2', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 htf_sweeps_tf_3_htf_lines_type = input.string(defval = 'Sweeps', title = 'HTF', options = ['Sweeps', 'Lines', 'Sweeps + Lines', 'None'], inline = '2', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Main - What lines are visible on Main chart.\n\nHTF - What lines are visible on HTF candles.')
 htf_sweeps_tf_3_sweep_line_color = input.color(defval = #b22833, title = '', inline = '3', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
@@ -78,6 +87,7 @@ htf3_open_line_show = input.bool(defval = true, title = 'Show HTF Open Line', in
 htf3_open_line_color = input.color(defval = #00E676, title = '', inline = '10', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 htf3_open_line_width = input.int(defval = 1, title = 'Width', minval = 1, inline = '10', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 htf3_open_line_style = input.string(defval = 'Dashed', title = '', options = ['Solid', 'Dashed', 'Dotted'], inline = '10', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+htf3_show_close_time = input.bool(defval = true, title = 'Show Close Time', inline = '11', group = 'HTF3 Settings ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', tooltip = 'Display a countdown timer showing when the current HTF candle will close.')
 string htf_sweeps_tf_3_dot_size = 'Tiny'
 string htf_sweeps_tf_3_dot_shape = 'Diamond'
 // General Settings
@@ -215,6 +225,28 @@ tf_label(string tf) =>
         'M' => 'M'
         => tfl
     out
+
+// Format remaining time as countdown string
+format_close_time(int remaining_ms) =>
+    string result = ""
+    // Explicitly cast to int to ensure integer division
+    int total_seconds = int(math.max(0, remaining_ms) / 1000)
+    int days = int(total_seconds / 86400)
+    int remainder_after_days = total_seconds % 86400
+    int hours = int(remainder_after_days / 3600)
+    int remainder_after_hours = remainder_after_days % 3600
+    int minutes = int(remainder_after_hours / 60)
+    int seconds = remainder_after_hours % 60
+    
+    if days > 0
+        result := str.format("{0}d {1}h {2}m", days, hours, minutes)
+    else if hours > 0
+        result := str.format("{0}h {1}m", hours, minutes)
+    else if minutes > 0
+        result := str.format("{0}m {1}s", minutes, seconds)
+    else
+        result := str.format("{0}s", seconds)
+    result
 session_begins(string tf, string ses, string tz) =>
     ta.change(time(tf, ses, na(tz) ? "" : tz)) != 0
 in_session(string tf, string ses, string tz) =>
@@ -1065,6 +1097,24 @@ if barstate.islast
             int open_line_end_x = tf_1_candle_show ? current_candle_1.candle_left : bar_index + 5
             line htf1_open_ln = line.new(x1=current_candle_1.o_idx, y1=current_candle_1.o, x2=open_line_end_x, y2=current_candle_1.o, xloc=xloc.bar_index, color=htf1_open_line_color, style=line_style(htf1_open_line_style), width=htf1_open_line_width)
             bin.bin_ln.push(htf1_open_ln)
+        // Draw HTF1 Close Time Label under the current candle
+        if htf1_show_close_time and htf_1_candles.size() > 0 and tf_1_candle_show and not htf_sweeps_tf_1_lines_only
+            current_candle_1 = htf_1_candles.get(0)
+            if not current_candle_1.is_closed
+                // Use built-in time_close for accurate timezone sync
+                int expected_close_time = time_close(actual_tf_1)
+                int remaining = expected_close_time - timenow
+                string close_time_text = format_close_time(remaining)
+                // Find lowest low of all HTF1 candles for positioning
+                float lowest_low = current_candle_1.l
+                for candle in htf_1_candles
+                    if candle.l < lowest_low
+                        lowest_low := candle.l
+                // Position below all candles with extra offset
+                float price_range = current_candle_1.h - lowest_low
+                float price_offset = math.max(price_range * 0.5, syminfo.mintick * 50)
+                label close_time_lbl = label.new(x=current_candle_1.wick_x, y=lowest_low - price_offset, text=close_time_text, xloc=xloc.bar_index, color=#FFFFFF00, style=label.style_label_up, textcolor=htf_sweeps_label_color, size=text_size(htf_sweeps_label_size), text_font_family=font.family_monospace, tooltip="Time until HTF candle closes")
+                bin.bin_lbl.push(close_time_lbl)
         if not tf_1_candle_show and htf_1_candles.size() >= 2
             candle = htf_1_candles.get(1)
             if candle.is_closed
@@ -1125,6 +1175,24 @@ if barstate.islast
             int open_line_end_x_2 = tf_2_candle_show ? current_candle_2.candle_left : bar_index + 5
             line htf2_open_ln = line.new(x1=current_candle_2.o_idx, y1=current_candle_2.o, x2=open_line_end_x_2, y2=current_candle_2.o, xloc=xloc.bar_index, color=htf2_open_line_color, style=line_style(htf2_open_line_style), width=htf2_open_line_width)
             bin.bin_ln.push(htf2_open_ln)
+        // Draw HTF2 Close Time Label under the current candle
+        if htf2_show_close_time and htf_2_candles.size() > 0 and tf_2_candle_show and not htf_sweeps_tf_2_lines_only
+            current_candle_2 = htf_2_candles.get(0)
+            if not current_candle_2.is_closed
+                // Use built-in time_close for accurate timezone sync
+                int expected_close_time = time_close(actual_tf_2)
+                int remaining = expected_close_time - timenow
+                string close_time_text = format_close_time(remaining)
+                // Find lowest low of all HTF2 candles for positioning
+                float lowest_low = current_candle_2.l
+                for candle in htf_2_candles
+                    if candle.l < lowest_low
+                        lowest_low := candle.l
+                // Position below all candles with extra offset
+                float price_range = current_candle_2.h - lowest_low
+                float price_offset = math.max(price_range * 0.5, syminfo.mintick * 50)
+                label close_time_lbl = label.new(x=current_candle_2.wick_x, y=lowest_low - price_offset, text=close_time_text, xloc=xloc.bar_index, color=#FFFFFF00, style=label.style_label_up, textcolor=htf_sweeps_label_color, size=text_size(htf_sweeps_label_size), text_font_family=font.family_monospace, tooltip="Time until HTF candle closes")
+                bin.bin_lbl.push(close_time_lbl)
         if not tf_2_candle_show and htf_2_candles.size() >= 2
             candle = htf_2_candles.get(1)
             if candle.is_closed
@@ -1185,6 +1253,24 @@ if barstate.islast
             int open_line_end_x_3 = tf_3_candle_show ? current_candle_3.candle_left : bar_index + 5
             line htf3_open_ln = line.new(x1=current_candle_3.o_idx, y1=current_candle_3.o, x2=open_line_end_x_3, y2=current_candle_3.o, xloc=xloc.bar_index, color=htf3_open_line_color, style=line_style(htf3_open_line_style), width=htf3_open_line_width)
             bin.bin_ln.push(htf3_open_ln)
+        // Draw HTF3 Close Time Label under the current candle
+        if htf3_show_close_time and htf_3_candles.size() > 0 and tf_3_candle_show and not htf_sweeps_tf_3_lines_only
+            current_candle_3 = htf_3_candles.get(0)
+            if not current_candle_3.is_closed
+                // Use built-in time_close for accurate timezone sync
+                int expected_close_time = time_close(actual_tf_3)
+                int remaining = expected_close_time - timenow
+                string close_time_text = format_close_time(remaining)
+                // Find lowest low of all HTF3 candles for positioning
+                float lowest_low = current_candle_3.l
+                for candle in htf_3_candles
+                    if candle.l < lowest_low
+                        lowest_low := candle.l
+                // Position below all candles with extra offset
+                float price_range = current_candle_3.h - lowest_low
+                float price_offset = math.max(price_range * 0.5, syminfo.mintick * 50)
+                label close_time_lbl = label.new(x=current_candle_3.wick_x, y=lowest_low - price_offset, text=close_time_text, xloc=xloc.bar_index, color=#FFFFFF00, style=label.style_label_up, textcolor=htf_sweeps_label_color, size=text_size(htf_sweeps_label_size), text_font_family=font.family_monospace, tooltip="Time until HTF candle closes")
+                bin.bin_lbl.push(close_time_lbl)
         if not tf_3_candle_show and htf_3_candles.size() >= 2
             candle = htf_3_candles.get(1)
             if candle.is_closed
